@@ -16,6 +16,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const fs = require("fs");
+const { version } = require('process');
 
 const config = require("./conf_bot.json");
 console.log("VERSION " + config.version);
@@ -53,7 +54,7 @@ client.on('debug', data_debug => {
     if(config.debug) console.log(dateToStringReduit(new Date()) + data_debug);
 });
 //erreur
-client.on('error', err => dif_log("ERREUR client" + err[0]));
+client.on('error', err => dif_log("⚠️ Erreur !","ERREUR client" + err[0]));
 
 
 //init du bot
@@ -61,19 +62,19 @@ client.on('ready', () => {
     
     console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.size} channels:${client.channels.size} serveur:${client.guilds.size}`);
     client.user.setActivity("capter (" + appel.toString() + "help)");
-    dif_log("=> Le bot Signal vient d'être lancé");
-    dif_log(`Connecté !\nNom:${client.user.tag} client:${client.users.size} channels:${client.channels.size} serveur:${client.guilds.size}`);
+    console.log("=> Le bot Signal vient d'être lancé");
+    console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.size} channels:${client.channels.size} serveur:${client.guilds.size}`);
 
     
 
     //application de la configuration
-    dif_log("Reconfiguration de signal...");
+    dif_log("⚠️ ETAT","Reconfiguration de signal...");
     try {
         configuration = JSON.parse(fs.readFileSync('conf_signal.json', 'utf8'));
-        dif_log("Configuration précedente trouvée...");
+        dif_log("⚠️ ETAT","Configuration précedente trouvée...");
         
     } catch (e) {
-        dif_log("PARAMETRES INACCESSIBLE (voir terminal)\n Contactez Onion ! @everyone");
+        dif_log("⚠️ Erreur !","PARAMETRES INACCESSIBLE (voir terminal)\n Contactez Onion ! @everyone");
         console.error(e);
         process.exit(0);
     }
@@ -87,6 +88,8 @@ client.on('ready', () => {
     if (!Channel_log) console.error("Channel " + config.ID_log + " non existant !\n Il n'y aura donc pas de log et d'acces aux commandes ADMIN");
 
 
+    dif_log("⚠️ DEMARRAGE SIGNAL ⚠️", "Le bot vient de redemarrer.\nSi ce n'était pas prévu, contactez l'administrateur du bot !");
+    
     // A FAIRE
     /*
     dif_log("Configuration:" +
@@ -166,9 +169,9 @@ client.on('message', msg => {
         //alerte intrusion
 
         if (member.roles.size <= 1 & msg.channel.id !== '560860521583214612' & msg.author.id !== config.ID_admin) { //permission @everyone ou nulle ET pas channel candidature et pas admin => alerte modo
-            let log = "\nALERTE, intrusion du systeme signal par une personne non autorisée\n";
+            let log = "\nIntrusion du systeme signal par une personne non autorisée\n";
             log += "Auteur:" + msg.author.username + "\nChannel:" + msg.channel.name + "\nContenu:" + msg.cleanContent;
-            dif_log(log);
+            dif_log("⚠️ Intrusion !",log);
 
             return;
         }
@@ -182,6 +185,7 @@ client.on('message', msg => {
 
         //si l'utilisateur n'existe pas, le créé
         if (utilisateur == undefined) {
+            dif_log("Nouvel utilisateur","Utilisateur : "+msg.author.username);
             //console.log("banane====================")
             utilisateur = {};
             utilisateur.ID = msg.author.id;
@@ -286,13 +290,14 @@ client.on('message', msg => {
 
 
         if (command === "ping") {
+            dif_log("Ping","Utilisateur : " + msg.author.username);
             msg.reply("Signal est activé");
             return;
         }
 
 
         if (command === "help" | command === "aide") {
-
+            dif_log("Demande d'aide","Utilisateur : "+msg.author.username);
             //https://paypal.me/pools/c/8mowOxex8i
             embed_aide(msg.author);
 
@@ -310,6 +315,7 @@ client.on('message', msg => {
 
 
         if (command === "aidecouleur") {
+            dif_log("Demande d'aide couleur","Utilisateur : "+msg.author.username);
             const embed = {
                 "title": "__**SIGNAL**__",
                 "description": "Bienvenue dans l'aide couleur du bot Signal\nPour modifier la couleur des messages, il faut taper ```$couleur``` suivit du code hexadecimal de la couleur de ton choix\nExemple:```$couleur #ff33da```coloriera votre message en **rose**",
@@ -358,7 +364,7 @@ client.on('message', msg => {
             Channel_radio.fetchMessage(utilisateur.DERMSG).then(message_sup => {
                 message_sup.delete();
 
-                dif_log("=>Suppression demandée du dernier message de " + msg.author.username);
+                dif_log("Supression","=>Suppression demandée du dernier message de " + msg.author.username);
 
                 msg.author.send("Le message a été supprimé");
                 if (msg.channel.type === "dm") {
@@ -378,15 +384,15 @@ client.on('message', msg => {
 
 
         if (command === 'crypt') {
-
             if (msg.channel.type === "text") msg.delete(); //si dans chan textuel
-
+            
             if (configuration.cryptage) {
                 let clef = args[0];
                 let content = msg.content.slice(appel.length + "crypt ".length + clef.length + 1);
                 //console.log(content);
                 Send_Message(msg, content, utilisateur, member,  true, clef);
             } else {
+                dif_log("Cryptage bloqué","Utilisateur : "+msg.author.username);
                 msg.author.send("Le cryptage est actuellement interdit sur le canal transmission. (voir avec les administrateurs de " + nom_serveur + ")\n```" + msg.cleanContent + "```");
             }
             return;
@@ -402,7 +408,7 @@ client.on('message', msg => {
                 //console.log(new_text);
                 //new_text = decrypt(new_text, CLEF_PROG);
 
-                dif_log("Tentative de decryptage de " + msg.author.username + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text);
+                dif_log("Décryptage","Tentative de decryptage de " + msg.author.username + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text);
 
                 msg.author.send("Message décodé 🔐 :\n" + "```" + new_text + "```");
                 if (msg.channel.type !== "text") {
@@ -430,6 +436,7 @@ client.on('message', msg => {
 
         if (command === 'couleur') {
             //#a85a32
+            dif_log("Couleur","Changement de couleur demandé par l'utilisateur "+msg.author.username);
             if (args[0] == undefined) {
                 msg.author.send("Pas d'argument, une couleur aléatoire vous est donc attribuée");
                 args[0] = alea_couleur();
@@ -463,7 +470,7 @@ client.on('message', msg => {
             return;
         }
         if (command === 'macouleur') {
-
+            dif_log("Couleur","Interrogation couleur par l'utilisateur "+msg.author.username);
             let embed = new Discord.RichEmbed().setColor(utilisateur.COULEUR)
                 .setTitle('Votre couleur est ' + utilisateur.COULEUR);
             msg.author.send(embed);
@@ -473,9 +480,8 @@ client.on('message', msg => {
 
 
 
-
-
         if (command == "credit") {
+            dif_log("Crédit","Demande credit par l'utilisateur "+msg.author.username);
             let embed_credit = new Discord.RichEmbed()
                 .setColor(16312092)
                 .setTimestamp()
@@ -621,26 +627,8 @@ client.on('message', msg => {
 
             if (command == "mise_en_route") {
 
-                /*
-                Channel_radio = client.channels.get(config.ID_radio); //test: 597466263144366140
-                if (!Channel_radio) return console.error("Channel " + ID + " non existant !");*/
-
-                Channel_radio.send("```Etablissement de la liaison... 0%```").then((msg) => {
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%```"); }, 1500);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...```"); }, 3000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%```"); }, 4500);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !```"); }, 5000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!```"); }, 7000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!```"); }, 10000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!```"); }, 15000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!\n!Test->Integrité de la démodulation.....73%```"); }, 16000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!\n!Test->Integrité de la démodulation.....73%\nInitialisation des liaisons numeriques..OK!```"); }, 18000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!\n!Test->Integrité de la démodulation.....73%\nInitialisation des liaisons numeriques..OK!\n\n\n```"); }, 18000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!\n!Test->Integrité de la démodulation.....73%\nInitialisation des liaisons numeriques..OK!\n\n\n\n====BIENVENUE SUR PROGRAMME====```"); }, 20000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!\n!Test->Integrité de la démodulation.....73%\nInitialisation des liaisons numeriques..OK!\n\n\n\n====BIENVENUE SUR PROGRAMME====\n==========S.I.G.N.A.L==========\n==========Version 2.3==========```"); }, 20000);
-                    setTimeout(function() { msg.edit("```Etablissement de la liaison... 0%\n...46%\n76%...\n...100%\nLiaison établie !\nIntilialisation du cryptage.............OK!\nIntilialisation du décryptage...........OK!\nIntilialisation de la démodulation......FAIL!\n!Test->Integrité de la démodulation.....73%\nInitialisation des liaisons numeriques..OK!\n\n\n\n====BIENVENUE SUR PROGRAMME====\n==========S.I.G.N.A.L==========\n==========Version 2.3==========\nEntrez votre commande:\n>>```"); }, 22000);
-
-                });
+                
+                mise_en_route();
                 return;
 
             }
@@ -655,7 +643,7 @@ client.on('message', msg => {
 
             //commande event
             if (command == "maj") {
-                maj();
+                maj(args[0]);
                 return;
 
             }
@@ -736,7 +724,7 @@ client.on('message', msg => {
 
             if (command == "cleanup") {
                 cleanup(Channel_radio);
-                msg.react("✅");
+                msg.react("✅").catch(e);
             }
 
             if (command == "crash") {
@@ -1002,25 +990,37 @@ function decrypt(text, key) {
 }
 
 
-function dif_log(log_txt) {
+async function dif_log(titre, log_txt, url) {
     //log sur console
 
     let now = new Date();
-    log_txt = "[" + now.getDate() + "/" + (now.getMonth() + 1) + "/" + now.getFullYear() + ";" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds() + "]:" + log_txt;
+    let embed_signal = new Discord.RichEmbed()
+        .setTimestamp()
+        .setColor("#000000")
+        .setAuthor(titre, client.user.avatarURL);
+    
+    if(!url) embed_signal.setDescription(log_txt);
+    else embed_signal.setDescription(log_txt+"\n[Lien]("+url+")");
+    
+    embed_signal.setFooter("LOG");
+
+    log_txt = "[" + now.getDate() + "/" + (now.getMonth() + 1) + "/" + now.getFullYear() + ";" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds() + "]:" + titre+" - "+log_txt;
 
     console.log(log_txt);
 
     //log dans fichier (fonction pour suppr ?)
     fs.appendFile("signal.log", log_txt, function(err) {
         if (err) return console.log(err);
-        console.log("*"); //Log enregistre*\n");
+        //console.log("*"); //Log enregistre*\n");
     });
 
-    if(config.MP_admin) client.users.get(config.ID_admin).send("```" + log_txt + "```");
+
+
+    if(config.MP_admin) client.users.get(config.ID_admin).send(embed_signal);
 
     //log dans chan
 
-    if (Channel_log != undefined) Channel_log.send("```" + log_txt + "```");
+    if (Channel_log != undefined) Channel_log.send(embed_signal);
 
 
 
@@ -1042,13 +1042,14 @@ function random(x) {
 async function Send_Message(msg, content, utilisateur, member, cryptage, clef){//, brouillage_utilisateur_espace, brouillage_utilisateur_caractere) {
     //msg_count++;
 
-    let log = msg.author.username + ",";
+    let log = "";
+    let log_titre= msg.author.username;
 
-    if (msg.channel.type == "text") log += msg.channel.name;
-    else log += "MP";
+    if (msg.channel.type == "text") log_titre +=" (" + msg.channel.name+")";
+    else log_titre += " (MP)";
 
-    log = "ENV:" + log;
-    log += "\n" + content + "\n";
+    
+    log += content + "\n";
 
 
 
@@ -1059,18 +1060,32 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef){/
         if (msg.attachments) { //si il y a des images attachés au message
             for (let [var1, var2] of msg.attachments) {
                 //if(var2.filename.slice(-3))
+                log+="Fichier: "+var2.url+" : ";
                 switch (var2.filename.slice(-4)) {
                     case ".mp3":
                     case ".wav":
-                        if (configuration.audio) listeFichier.push(var2.url); //yes  recuperer les fichiers dans listeFichier
-                        else msg.author.send("Vous ne pouvez pas envoyer le fichier audios "+var2.filename+" via le bot (reglage administrateur)");
+                        if (configuration.audio){
+                            listeFichier.push(var2.url); //yes  recuperer les fichiers dans listeFichier
+                            log+="OK";
+                        }
+                        else{
+                            msg.author.send("Vous ne pouvez pas envoyer le fichier audios "+var2.filename+" via le bot (reglage administrateur)");
+                            log+="NOK";
+                        }
                         break;
                 
                     default:
-                        if (configuration.fichier) listeFichier.push(var2.url); //yes  recuperer les fichiers dans listeFichier
-                        else msg.author.send("Vous ne pouvez pas envoyer le fichier audios "+var2.filename+" via le bot (reglage administrateur)");
+                        if (configuration.fichier){
+                            listeFichier.push(var2.url); //yes  recuperer les fichiers dans listeFichier
+                            log+="OK";
+                        }
+                        else{
+                            msg.author.send("Vous ne pouvez pas envoyer le fichier audios "+var2.filename+" via le bot (reglage administrateur)");
+                            log+="NOK";
+                        }
                         break;
-                }  
+                }
+                log+="\n";
             }
         }
     }
@@ -1171,15 +1186,20 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef){/
 
 
     Channel_radio.send(embed_signal).then(sent => { // 'sent' est le message envoyé
-        if (msg.channel.type != "text") msg.react("📤").catch(err => dif_log("error 03 " + err));
+        if (msg.channel.type != "text") msg.react("📤").catch(err => dif_log("⚠️ Erreur !","error 03 " + err));
         let id = sent.id;
-        sent.delete(configuration.duree_messsage).catch(err => dif_log("error 02 " + err));
+        sent.delete(configuration.duree_messsage).catch(err => dif_log("⚠️ Erreur !","error 02 " + err));
         //msg.author.send("Message envoyé !\n" + "```" + "Channel: " + sent.channel.name + "\nID: " + id + "\nContenu:\n" + new_text.replace("`", ".") + "```");
         utilisateur.DERMSG = id;
         update_user(msg.author.id, utilisateur);
-    }).catch(err => dif_log("error 01 " + err));
 
-    dif_log(log);
+        dif_log(log_titre,"```"+log+"```",sent.url); //log
+
+
+    }).catch(err => dif_log("⚠️ Erreur !","error 01 " + err));
+
+
+
 
 }
 
@@ -1196,7 +1216,8 @@ function update_user(id, utilisateur) {
 function alea_couleur() {
     //0 à 16777215
     let alea = random(16777215).toString(16);
-    alea = '#' + alea;
+    
+    alea = '#' +"0".repeat(6-alea.length)+ alea;
     return alea;
 }
 
@@ -1205,20 +1226,21 @@ function alea_couleur() {
 
 //event
 
-async function maj() {
+async function maj(duree) {
     stopmaj = false;
-    /*Channel = client.channels.get(config.ID_radio); //test: 597466263144366140
-    if (!Channel) return console.error("Channel " + ID + " non existant !");*/
-    Channel_radio.send("```...................```");
-    Channel_radio.send("```>Lancement de la mise à jour de signal```");
+    
+    let message = await Channel_radio.send("```______________________```");
+    //console.log(message)
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Lancement de la mise à jour de signal```");
     await sleep(1000);
-    Channel_radio.send("```>Temps estimé....2Heures```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Temps estimé...."+parseInt(duree/60000)+" minutes```");
     await sleep(1000);
-    let m = await Channel_radio.send("```>0%...```");
-    await sleep(1000);
+    //let m = await Channel_radio.send("``` ```");
+    //await sleep(1000);
     let i = 1;
     let j;
     let temp = "";
+    content_clean=message.content.slice(0,-3);
     while (i < 100 & !stopmaj) {
 
         temp = "";
@@ -1226,18 +1248,25 @@ async function maj() {
             if (i > j) { temp += "#"; } else { temp += "-"; }
         }
 
-        m.edit("```>" + i + "%...\n>" + temp + "```");
-        await sleep(72000); //pour 2h
+        await message.edit(content_clean+"\n"+">" + temp + " | " + i + "%```");
+        
+        await sleep(duree/100); 
 
         i++;
     }
 
-
     if (stopmaj) return;
-    m.edit("```>100%!```");
+
+    for (j = 0; j < 100; j = j + 4) {
+        if (i > j) { temp += "#"; } else { temp += "-"; }
+    }
+    message = await message.edit(content_clean+"\n"+">" + temp + " | 1000% !```");
+
+
+    //m.edit("```>100%!```");
     await sleep(1000);
-    Channel_radio.send("```...................```");
-    Channel_radio.send("```>Installation compléte```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"______________________```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Installation complète```");
 }
 
 
@@ -1245,15 +1274,48 @@ async function stopmaj_f() {
     stopmaj = true;
     /*Channel = client.channels.get(config.ID_radio); //test: 597466263144366140
     if (!Channel) return console.error("Channel " + ID + " non existant !");*/
-    Channel_radio.send("```...................```");
-    Channel_radio.send("```>Mise à jour interompue```");
+    let message = await Channel_radio.send("```______________________```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Mise à jour interompue```");
     await sleep(1000);
-    Channel_radio.send("```>Alerte ! Corruption du systeme```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Alerte ! Corruption du systeme```");
     await sleep(1000);
-    Channel_radio.send("```>Redemarrage en mode sans echec....```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Redemarrage en mode sans echec....```");
     await sleep(10000);
-    Channel_radio.send("```>Signal redemarré avec succès !```");
+    message = await message.edit(message.content.slice(0,-3)+"\n"+">Signal redemarré avec succès !```");
 }
+
+async function mise_en_route(){
+
+
+    let message = await Channel_radio.send("```Etablissement de la liaison... 0%```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-5)+"46%```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-6)+"76%```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-6)+"100%!```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"Liaison établie !```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"Intilialisation du cryptage.............OK!```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"Intilialisation du décryptage...........OK!```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"Mesure de la réception réseau........Bonne```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"Intilialisation du décryptage...........OK!```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"\n\n========BIENVENUE SUR LE PROGRAMME=========```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"================S.I.G.N.A.L================```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"================Version "+config.version+"================```");
+    await sleep(1000);
+    message = await message.edit(message.content.slice(0,-3)+"\n"+"Entrez votre commande:\n>>```");
+}
+
+
+
 
 //delai
 function sleep(ms) {
@@ -1356,38 +1418,23 @@ function cleanup(channel){
     let now = new Date();
     channel.fetchMessages()
     .then(messages =>{
-        
         for (let [s, message] of messages) {
-
-
-            if(message.embeds.length==0){
+            if(message.embeds.length==0){ //suppr tout message non embed
                 message.delete();
             }else{
-
-
-                if(message.embeds[0].title!=="__**SIGNAL**__"){ //si ce n'est pas l'aide
-
-                    let date_mes=new Date(message.createDTimestamp);
-                    if(now-date_mes > configuration.duree_messsage){
-                        message.delete().catch(err => dif_log("error cleanup : Rien de grave !"));
-                    }else{
-                        message.delete(configuration.duree_messsage-(now-date_mes)).catch(err => dif_log("error cleanup : Rien de grave !"));
+                if(parseInt(configuration.duree_messsage)!=0){ //si la supression est activé
+                    if(message.embeds[0].title!=="__**SIGNAL**__"){ //si ce n'est pas l'aide
+                        if(now.getTime()-message.createdTimestamp > parseInt(configuration.duree_messsage)){
+                            message.delete().catch(err => dif_log("⚠️ Erreur !","error cleanup : Rien de grave !"));
+                        }else{
+                            message.delete(parseInt(configuration.duree_messsage)-(now.getTime()-message.createdTimestamp)).catch(err => dif_log("⚠️ Erreur !","error cleanup : Rien de grave !"));
+                        }
                     }
                 }
             }
-
-        }
-        
+        }  
     })
     .catch(console.error);
 }
 
 
-/*
-
-Channel_radio.fetchMessage(utilisateur.DERMSG).then(message_sup => {
-                message_sup.delete();
-
-
-
-*/

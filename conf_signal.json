@@ -1,13 +1,13 @@
 {
   "brouillage_caractere": "2",
   "brouillage_espace": "15",
-  "brouillage_couleur": "255",
+  "brouillage_couleur": "15",
   "anonyme": true,
   "coloration": true,
   "actif": true,
   "cryptage": true,
   "taille_max_msg": 1500,
-  "duree_messsage": "5000",
+  "duree_messsage": "50000000",
   "fichier": false,
   "audio": true
 }
