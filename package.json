@@ -1,0 +1,11 @@
+{
+    "name": "signal",
+    "version": "2.5.0",
+    "description": "Signal",
+    "main": "index.js",
+    "dependencies": {
+        "discord.js": "^11.5.1"
+    },
+    "author": "Onion",
+    "license": "CC-BY-NC-ND-4.0"
+}
