@@ -724,7 +724,7 @@ client.on('message', msg => {
 
             if (command == "cleanup") {
                 cleanup(Channel_radio);
-                msg.react("✅").catch(e);
+                msg.react("✅").catch(err => dif_log("⚠️ Erreur !","error delete : Rien de grave !"));
             }
 
             if (command == "crash") {
@@ -1117,7 +1117,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef){/
 
 
 
-    let new_text = brouiller(content, configuration.brouillage_espace, configuration.brouillage_caracter); //brouillage message
+    let new_text = brouiller(content, configuration.brouillage_espace, configuration.brouillage_caractere); //brouillage message
 
 
     let embed_signal = new Discord.RichEmbed()
@@ -1413,28 +1413,41 @@ function brouilleCouleurHex(couleur, brouille){
 }
 
 
-
-function cleanup(channel){
+//efface les messages trop vieux ou parasite
+function cleanup(channel) {
     let now = new Date();
-    channel.fetchMessages()
-    .then(messages =>{
-        for (let [s, message] of messages) {
-            if(message.embeds.length==0){ //suppr tout message non embed
-                message.delete();
-            }else{
-                if(parseInt(configuration.duree_messsage)!=0){ //si la supression est activé
-                    if(message.embeds[0].title!=="__**SIGNAL**__"){ //si ce n'est pas l'aide
-                        if(now.getTime()-message.createdTimestamp > parseInt(configuration.duree_messsage)){
-                            message.delete().catch(err => dif_log("⚠️ Erreur !","error cleanup : Rien de grave !"));
-                        }else{
-                            message.delete(parseInt(configuration.duree_messsage)-(now.getTime()-message.createdTimestamp)).catch(err => dif_log("⚠️ Erreur !","error cleanup : Rien de grave !"));
+
+    channel.fetchMessages({limit: 1}) //premier message pour ref
+        .then(async mesgs => {
+
+            for (let [s, mesg] of mesgs) {
+                let idtemp = mesg.id; //dernier message envoyé sur le chan
+
+                while (idtemp != -1) { //tant que pas le truc titre
+
+                    await channel.fetchMessages({ limit: 100, before: idtemp }).then(messages => { //100 par 100 max
+                        for (let [s, message] of messages) {
+                            idtemp = message.id;
+                            if (message.embeds.length == 0) { //suppr tout message non embed
+                                message.delete();
+                            } else {
+                                if (parseInt(configuration.duree_messsage) != 0) { //si la supression est activé
+                                    if (message.embeds[0].title !== "__**SIGNAL**__") { //si ce n'est pas l'aide
+                                        if (now.getTime() - message.createdTimestamp > parseInt(configuration.duree_messsage)) {
+                                            message.delete().catch(err => dif_log("⚠️ Erreur !","error cleanup : Rien de grave !"));
+                                        } else {
+                                            message.delete(parseInt(configuration.duree_messsage)-(now.getTime()-message.createdTimestamp)).catch(err => dif_log("⚠️ Erreur !","error cleanup : Rien de grave !"));
+                                        }
+                                    } else { //si message d'aide, yep yep
+                                        idtemp = -1;
+                                    }
+                                }
+                            }
                         }
-                    }
+                    }).catch(console.error);
                 }
             }
-        }  
-    })
-    .catch(console.error);
+
+        }).catch(console.error);
+
 }
-
-
