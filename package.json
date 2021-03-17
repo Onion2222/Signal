@@ -4,7 +4,8 @@
     "description": "Signal",
     "main": "index.js",
     "dependencies": {
-        "discord.js": "^11.5.1"
+        "discord.js": "^11.5.1",
+        "mysql": "^2.18.1"
     },
     "author": "Onion",
     "license": "CC-BY-NC-ND-4.0"

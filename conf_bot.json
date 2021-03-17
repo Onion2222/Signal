@@ -1,5 +1,5 @@
 {
-    "TOKEN": "Nzc3OTU5MjY2MTExMDYyMDY4.X7LBBg.TBdNoVnAuJAeO6rZ5nxrGFbTIwE",
+    "TOKEN": "",
     "ID_admin": "328584955934277633",
     "ID_serveur": "777958966151086122",
     "ID_radio": "777958967477141576",
@@ -8,9 +8,9 @@
     "debug": false,
     "version": "2.5",
     "Serveur_SQL": {
-        "host": "45.140.165.82",
-        "user": "u8101_4bycuGNLdm",
-        "password": "onion",
-        "database": "s8101_utilisateur"
+        "host": "",
+        "user": "",
+        "password": "",
+        "database": ""
     }
 }
