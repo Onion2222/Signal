@@ -9,5 +9,20 @@
   "taille_max_msg": 1500,
   "duree_messsage": "50000000",
   "fichier": false,
-  "audio": true
+  "audio": true,
+  "mots_interdits": [
+    "hrp",
+    "www.",
+    "https:",
+    "ptdr",
+    "mdr",
+    "XD",
+    "discord",
+    "hitler",
+    "卍",
+    "#",
+    "<@",
+    "(©|®|[•-㌀]|\ud83c[\udc00-\udfff]|\ud83d[\udc00-\udef9]|\ud83e[\udd10-\uddff])",
+    ":[^:\\s]*(?:::[^:\\s]*)*:"
+  ]
 }

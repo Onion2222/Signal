@@ -1,10 +1,16 @@
 {
-  "TOKEN":"",
-  "ID_admin": "328584955934277633",
-  "ID_serveur": "777958966151086122",
-  "ID_radio": "777958967477141576",
-  "ID_log": "777959086448312350",
-  "MP_admin": false,
-  "debug":false,
-  "version":"2.5"
+    "TOKEN": "Nzc3OTU5MjY2MTExMDYyMDY4.X7LBBg.TBdNoVnAuJAeO6rZ5nxrGFbTIwE",
+    "ID_admin": "328584955934277633",
+    "ID_serveur": "777958966151086122",
+    "ID_radio": "777958967477141576",
+    "ID_log": "777959086448312350",
+    "MP_admin": false,
+    "debug": false,
+    "version": "2.5",
+    "Serveur_SQL": {
+        "host": "45.140.165.82",
+        "user": "u8101_4bycuGNLdm",
+        "password": "onion",
+        "database": "s8101_utilisateur"
+    }
 }
