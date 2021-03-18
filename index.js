@@ -165,11 +165,12 @@ client.on('ready', () => {
 
 
 function query_db(query) {
-    console.log(query)
+    console.log(query);
     return new Promise((resolve, reject) => {
         db.query(query, (error, results) => {
             if (error) {
                 console.log(error);
+                dif_log("Erreur SQL", "Requête: `" + query + "`\nErreur: `" + error + "`");
                 return reject(error);
             }
             return resolve(results);
@@ -484,18 +485,19 @@ client.on('message', async msg => {
 
     if (command === 'couleur') {
         //#a85a32
-        dif_log("Couleur", "Changement de couleur demandé par l'utilisateur " + msg.author.username);
+        dif_log("Couleur", "Changement de couleur demandé par l'utilisateur " + msg.author.username + "\nMessage: `" + msg.content + "`");
         if (args[0] == undefined) {
             msg.author.send("Pas d'argument, une couleur aléatoire vous est donc attribuée");
             args[0] = alea_couleur();
         } else {
-            if (args[0].length !== 7) {
+            let regex = new RegExp("#[0-9a-f]{6}", "i");
+
+            if (args[0].search(regex) != 0) {
                 msg.author.send("Erreur, argument incorrect... Se référer à $help");
                 return;
-            }
-            if (args[0].slice(0, 1) != '#') {
-                msg.author.send("Erreur, argument incorrect... Se référer à $help");
-                return;
+            } else {
+                //bon
+                args[0] = args[0].replace("#", "");
             }
         }
 
@@ -510,22 +512,18 @@ client.on('message', async msg => {
         }
         //ecrire couleur dans utilisateur
         utilisateur.COULEUR = args[0];
-
-
         //json:
         //update_user(msg.author.id, utilisateur);
         //mysql
         query_db("UPDATE users SET COULEUR = \"" + utilisateur.COULEUR + "\" WHERE ID=\"" + msg.author.id + "\"");
-
-
         return;
     }
+
     if (command === 'macouleur') {
         dif_log("Couleur", "Interrogation couleur par l'utilisateur " + msg.author.username);
         let embed = new Discord.RichEmbed().setColor(utilisateur.COULEUR)
             .setTitle('Votre couleur est ' + utilisateur.COULEUR);
         msg.author.send(embed);
-
         return;
     }
 
@@ -626,7 +624,7 @@ client.on('message', async msg => {
             //json
             //embed_signal.addField("Nombre d'utilisateur avec profile couleur", liste_utilisateur.Utilisateurs.length);
             //mysql
-            let nb_utilisateur = await query_db("SELECT table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=\"" + config.Serveur_SQL.database + "\" and table_name=\"users\"")
+            let nb_utilisateur = await query_db("SELECT table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=\"" + config.Serveur_SQL.database + "\" and table_name=\"users\"");
             embed_signal.addField("Nombre d'utilisateur avec profile couleur", nb_utilisateur[0].table_rows);
 
 
@@ -1311,7 +1309,7 @@ function CallBack_Message(sent, msg, utilisateur, log_titre, log) { // 'sent' es
     query_db("UPDATE users SET DERMSG = " + utilisateur.DERMSG + ", nb_msg = nb_msg+1, date_dermsg=\"" + isoDate + "\" WHERE ID=\"" + msg.author.id + "\"");
 
 
-    dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`$ban " + utilisateur.ID + "`"); //log
+    dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID: " + utilisateur.ID + "`"); //log
 }
 
 function CallBack_Error(num, err) {
@@ -1560,13 +1558,10 @@ function cleanup(channel) {
 
                     await channel.fetchMessages({ limit: 100, before: idtemp }).then(messages => { //100 par 100 max
 
-                        count_message = 0
+                        count_message = 0;
                         for (let [s, message] of messages) {
                             count_message++;
-
-
                             idtemp = cleanupMessage(message);
-
                         }
                     }).catch(err => console.log(err));
 
@@ -1600,7 +1595,7 @@ function cleanupMessage(message) {
 
 
 function validator(text) {
-    let liste_mot_trouve = []
+    let liste_mot_trouve = [];
     for (let mot of configuration.mots_interdits) {
         let regex = new RegExp(mot, "i");
         //console.log(text.search(regex));
