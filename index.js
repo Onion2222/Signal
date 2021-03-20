@@ -41,6 +41,7 @@ const appel = "$";
 var Channel_log;
 var Channel_radio;
 var nom_serveur;
+var guild;
 
 
 
@@ -91,8 +92,8 @@ client.on('ready', () => {
     }
 
 
-
-    nom_serveur = client.guilds.get(config.ID_serveur).name;
+    guild = client.guilds.get(config.ID_serveur);
+    nom_serveur = guild.name;
 
     //acq chan log & radio
     Channel_log = client.channels.get(config.ID_log);
@@ -330,6 +331,58 @@ client.on('message', async msg => {
 
     }
     */
+
+
+    //commande chan vocal
+    if (command == "freq") {
+        //console.log(member.voiceChannel);
+
+        if (!member.voiceChannel) {
+            msg.react("❌");
+            msg.react("📞");
+            msg.author.send("Ooopsie ! Vous devez être sur un channel vocal pour être transferé ! :)");
+            return;
+        }
+        let channel_togo = configuration.frequence.freq.find(chan => chan.nom === args[0]);
+        if (!channel_togo) {
+            channel_togo = configuration.frequence.TACSAT.find(chan => chan.nom === args[0]);
+            if (!channel_togo) {
+                msg.react("❌");
+                msg.react("❓");
+                msg.author.send("Ooopsie ! Aucun channel ne possède ce nom... :(");
+                return;
+            }
+            if (args[1] != channel_togo.mdp) {
+                msg.react("🔒");
+                msg.react("❌");
+                msg.author.send("Accès refusé :lock:");
+                return;
+            } else {
+                msg.react("🔓");
+                msg.author.send("Accès autorisé :unlock:");
+            }
+        }
+
+        msg.react("✅");
+        member.setVoiceChannel(channel_togo.ID);
+        //log
+        dif_log("🔊 Acces Vocal", member.nickname + " vient d'acceder au channel " + channel_togo.nom);
+        return;
+    }
+
+
+    if (command == "listefreq") {
+        send_liste_freq(msg.channel);
+        return;
+    }
+    if (command == "aidefreq") {
+        send_aide_freq(msg.channel);
+        send_liste_freq(msg.channel);
+        return;
+    }
+
+
+
     if (command === "hrp") {
         dif_log("HRP", "Utilisateur : " + msg.author.username);
         msg.channel.send("Attention, ce que tu viens de demander/dire semble HRP !\nSi tu souhaites parler de manière RP, je t'invite à m'envoyer un message privé qui sera retransmis __directement__ et __anonymement__ sur le channel <#" + Channel_radio.id + ">\n(`$help` pour plus d'information)");
@@ -552,7 +605,6 @@ client.on('message', async msg => {
                 .setTimestamp()
                 .setTitle("Aide admin")
                 .setDescription("Commande uniquement utilisable sur ce channel\n*Il vaut mieux demander à Onion avant de faire n'importe quoi*")
-                .addBlankField()
                 .addField("$log", "Envoie le fichier de log")
                 .addField("$etat", "Affiche l'état du réseau signal")
                 .addField("$actif", "Active ou desactive signal")
@@ -560,21 +612,21 @@ client.on('message', async msg => {
                 .addField("$coloration", "Impose les Jaune ou laisse les couleurs personnalisées")
                 .addField("$fichier", "Active/desactive l'envoie de fichier (hors audio)")
                 .addField("$audio", "Active/desactive l'envoie de fichier audio")
-                .addField("$crash", "Fait crasher Signal NE PAS UTILISER")
                 .addField("$difhelp", "Diffuse l'aide sur le canal radio")
                 .addField("$cleanup", "Supprime ou re-ordonne la supression future des messages qui n'ont pas été supprimé dans les temps")
                 .addField("$admin", "Permet de diffuser un message d'administrateur")
                 .addField("$setbrouillage X >BLABLA image", "Modifie le brouillage\nX: X% de carracteres brouillés (defaut: 0, pas de brouillage)\n BLABLA: raison du brouillage (optionnel)\nimage: petite image (optionnel)\nDifferents niveaux: [;25[,[25;15[,[15;7[,[7;1]")
                 .addField("$setbrouillageespace X ", "Modifie la chance d'avoir des \"krssssh\"\nX: X% d'espaces transformés")
                 .addField("$setbrouillagecouleur X ", "Pour le brouillage des couleurs... Je sais pas expliquer, mais 80 donne +/-40 /255 de brouillage RGB (je sais c'est pas claire)")
-                .addField("$ban X ", "Ban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
-                .addField("$deban X ", "Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à debannir")
+                .addField("$ban X / $deban X", "Ban/Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
                 .addField("$listeban", "Envoie la liste des bannis")
                 .addField("$delaidel X", "Modifie la durée des message\nX: durée en ms")
                 .addField("$cryptage", "Active ou desactive la commande $crypt")
                 .addField("$addmotinterdit MOT", "Ajoute un mot interdit à la liste")
                 .addField("$listemotinterdit", "Affiche la liste des mots interdits")
-                .addBlankField()
+                .addField("$addfreqprive nom mdp ID", "Créé un channel vocal privé")
+                .addField("$addfreq nom ID", "Créé un channel vocal publique")
+                .addField("difhelpfreq ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
                 .addField("Commandes EVENT", "Laissez Onion faire, assez complexe:\n$maj | $stopmaj | $mise_en_route")
                 .setFooter("Par Onion² pour " + nom_serveur);
             msg.channel.send(embed_signal);
@@ -768,7 +820,6 @@ client.on('message', async msg => {
 
         if (command == "difhelp") {
 
-            //https://paypal.me/pools/c/8mowOxex8i
 
             /*Channel_radio = client.channels.get(config.ID_radio); //test: 597466263144366140
             if (!Channel)_radio return console.error("Channel " + ID + " non existant !");*/
@@ -776,6 +827,18 @@ client.on('message', async msg => {
             msg.react("✅");
             return;
         }
+        if (command == "difhelpfreq") {
+
+            chann = client.channels.get(args[0]); //test: 597466263144366140
+            if (!chann) return console.error("Channel " + ID + " non existant !");
+            send_aide_freq(chann);
+            send_liste_freq(chann);
+
+            msg.react("✅");
+            return;
+        }
+
+
 
         if (command == "cleanup") {
             cleanup(Channel_radio);
@@ -884,6 +947,32 @@ client.on('message', async msg => {
 
         if (command == "listemotinterdit") { //$addmotinterdit couille
             msg.channel.send("Mots interdits: \n" + configuration.mots_interdits.toString());
+        }
+
+        if (command == "addfreqprive") { //$addfreqprive nom mdp ID
+
+            try {
+                let freq = {};
+                freq.nom = args[0];
+                freq.mdp = args[1];
+                freq.ID = args[2];
+                configuration.frequence.TACSAT.push(freq);
+                msg.react("✅");
+            } catch (error) {
+                dif_log("erreur n°51", error);
+            }
+        }
+
+        if (command == "addfreq") { //$addfreq nom ID
+            try {
+                let freq = {};
+                freq.nom = args[0];
+                freq.ID = args[1];
+                configuration.frequence.freq.push(freq);
+                msg.react("✅");
+            } catch (error) {
+                dif_log("erreur n°50", error);
+            }
         }
 
 
@@ -1126,25 +1215,15 @@ function random(x) {
 }
 
 
-
-
 async function Send_Message(msg, content, utilisateur, member, cryptage, clef) { //, brouillage_utilisateur_espace, brouillage_utilisateur_caractere) {
     //msg_count++;
 
     let log_titre = msg.author.tag;
 
-
-
-
     if (msg.channel.type == "text") log_titre += " (" + msg.channel.name + ")";
     else log_titre += " (MP)";
 
-
-
-
     let log = "Message de <@" + msg.author.id + ">:\n`" + content + " `" + "\n";
-
-
 
     //envoie des fichiers:
 
@@ -1603,4 +1682,42 @@ function validator(text) {
 
     }
     return liste_mot_trouve;
+}
+
+
+function send_liste_freq(chan) {
+    let embed = new Discord.RichEmbed()
+        .setTitle("__Liste des fréquences radios__")
+        .setColor('#1cfc03')
+        .setTimestamp()
+        .setAuthor("Signal", client.user.avatarURL);
+
+    let description = "**Liste des frequences publiques:**";
+    configuration.frequence.freq.forEach(frequence => {
+        description += "\n`$freq " + frequence.nom + "`";
+    });
+    description += "\n\n**Liste des frequences privées:**";
+    configuration.frequence.TACSAT.forEach(tacsat => {
+        description += "\n`$freq " + tacsat.nom + " ████████`";
+    });
+    embed.setDescription(description);
+    chan.send(embed);
+}
+
+function send_aide_freq(chan) {
+    let embed = new Discord.RichEmbed()
+        .setTitle("__Aide pour les fréquences radios__")
+        .setDescription("Avant d'integrer une fréquence, vous devez être connecté à un channel vocal")
+        .setColor('#1cfc03')
+        .setTimestamp()
+        .setThumbnail(client.user.avatarURL)
+        //.setAuthor("Signal", client.user.avatarURL)
+        .addField("Acceder à une fréquence publique:", "`$freq` suivit du nom de la frequence")
+        .addField("Acceder à une fréquence privée:", "`$freq` suivit du nom de la frequence puis du mot de passe")
+        .addField("Obtenir la liste des fréquences disponibles:", "`$listefreq`")
+        .addBlankField()
+        .addField("Un problème, une question, une suggestion ?", "Contactez Onion#3562")
+        .setFooter("Par Onion² pour " + nom_serveur, client.user.avatarURL);
+
+    chan.send(embed);
 }
