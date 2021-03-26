@@ -350,7 +350,7 @@ client.on('message', async msg => {
             if (index_chan == -1) {
                 msg.react("🛑");
                 msg.react("❌");
-                msg.author.send("Ooopsie ! Tu ne sembles pas être dans une fréquence... :(");
+                msg.author.send("Ooopsie ! Tu ne sembles pas être dans une fréquence publique... :(");
                 return;
             }
             if (args[0] == "+") {
@@ -773,12 +773,12 @@ client.on('message', async msg => {
         }
 
 
-
+        /*
         if (command == "log") {
             msg.react("📄");
             msg.channel.send("Voici les logs:", { files: ["signal.log"] });
             return;
-        }
+        }*/
 
         //commande event
         if (command == "maj") {
@@ -1292,10 +1292,11 @@ async function dif_log(titre, log_txt) {
     console.log(log_txt);
 
     //log dans fichier (fonction pour suppr ?)
+    /*
     fs.appendFile("signal.log", log_txt, function(err) {
         if (err) return console.log(err);
         //console.log("*"); //Log enregistre*\n");
-    });
+    });*/
 
 
 
