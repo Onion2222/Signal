@@ -73,7 +73,7 @@ client.on('error', err => dif_log("⚠️ Erreur !", "ERREUR client" + err[0]));
 client.on('ready', () => {
 
     console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.size} channels:${client.channels.size} serveur:${client.guilds.size}`);
-    client.user.setActivity("capter (" + appel.toString() + "help)");
+    client.user.setActivity("capter (" + appel.toString() + "aide / " + appel.toString() + "aidefreq )");
     console.log("=> Le bot Signal vient d'être lancé");
     console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.size} channels:${client.channels.size} serveur:${client.guilds.size}`);
 
@@ -1818,6 +1818,9 @@ function send_aide_freq(chan) {
         .addField("Acceder à une fréquence publique:", "`$freq` suivit du nom de la frequence")
         .addField("Acceder à une fréquence privée:", "`$freq` suivit du nom de la frequence puis du mot de passe")
         .addField("Obtenir la liste des fréquences disponibles:", "`$listefreq`")
+        .addField("Aller sur la fréquence suivante:", "`$freq +`")
+        .addField("Aller sur la fréquence précédente:", "`$freq -`")
+        .addField("Exemple:", "Si je souhaite aller sur la fréquence sécurisée 34567.8 et que le mot de passe est \"voiture\", je dois taper\n`$freq 34567.8 voiture`")
         .addBlankField()
         .addField("Un problème, une question, une suggestion ?", "Contactez Onion#3562")
         .setFooter("Par Onion² pour " + nom_serveur, client.user.avatarURL);
