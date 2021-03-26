@@ -1821,7 +1821,8 @@ function send_aide_freq(chan) {
         .addField("Obtenir la liste des fréquences disponibles:", "`$listefreq`")
         .addField("Aller sur la fréquence suivante:", "`$freq +`")
         .addField("Aller sur la fréquence précédente:", "`$freq -`")
-        .addField("Exemple:", "Si je souhaite aller sur la fréquence sécurisée 34567.8 et que le mot de passe est \"voiture\", je dois taper\n`$freq 34567.8 voiture`")
+        .addField("Se déconnecter des fréquences", "`$freq off`")
+        .addField("Exemple:", "Si vous souhaitez aller sur la fréquence sécurisée 34567.8 et que le mot de passe est \"voiture\", vous devez taper\n`$freq 34567.8 voiture`")
         .addBlankField()
         .addField("Un problème, une question, une suggestion ?", "Contactez Onion#3562")
         .setFooter("Par Onion² pour " + nom_serveur, client.user.avatarURL);
