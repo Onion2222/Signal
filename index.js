@@ -334,50 +334,81 @@ client.on('message', async msg => {
 
 
     //commande chan vocal
-    if (command == "freq") {
+    if (command == "freq" & msg.channel.type !== "text") {
+
         //console.log(member.voiceChannel);
+        let freq_togo;
 
         if (!member.voiceChannel) {
-            msg.react("❌");
             msg.react("📞");
+            msg.react("❌");
             msg.author.send("Ooopsie ! Vous devez être sur un channel vocal pour être transferé ! :)");
             return;
-        }
-        let channel_togo = configuration.frequence.freq.find(chan => chan.nom === args[0]);
-        if (!channel_togo) {
-            channel_togo = configuration.frequence.TACSAT.find(chan => chan.nom === args[0]);
-            if (!channel_togo) {
+
+        } else if (args[0] == "+" | args[0] == "-") {
+            let index_chan = configuration.frequence.freq.findIndex(freq => freq.ID == member.voiceChannelID);
+            if (index_chan == -1) {
+                msg.react("🛑");
                 msg.react("❌");
-                msg.react("❓");
-                msg.author.send("Ooopsie ! Aucun channel ne possède ce nom... :(");
+                msg.author.send("Ooopsie ! Tu ne sembles pas être dans une fréquence... :(");
                 return;
             }
-            if (args[1] != channel_togo.mdp) {
-                msg.react("🔒");
-                msg.react("❌");
-                msg.author.send("Accès refusé :lock:");
-                return;
+            if (args[0] == "+") {
+                index_chan = (index_chan + 1) % configuration.frequence.freq.length;
+                msg.react("⏩");
+            } else if (args[0] == "-") {
+                if (index_chan == 0) index_chan = configuration.frequence.freq.length - 1;
+                else index_chan = (index_chan - 1) % configuration.frequence.freq.length;
+                msg.react("⏪");
+            }
+            freq_togo = configuration.frequence.freq[index_chan];
+
+        } else if (args[0] == "off") {
+            msg.react("🔇");
+            member.setVoiceChannel(null);
+            msg.react("✅");
+            return;
+
+        } else {
+            freq_togo = configuration.frequence.freq.find(chan => chan.nom === args[0]);
+            if (!freq_togo) {
+                freq_togo = configuration.frequence.TACSAT.find(chan => chan.nom === args[0]);
+                if (!freq_togo) {
+                    msg.react("❓");
+                    msg.react("❌");
+                    msg.author.send("Ooopsie ! Aucun channel ne possède ce nom... :(");
+                    return;
+                }
+                if (args[1] != freq_togo.mdp) {
+                    msg.react("🔒");
+                    msg.react("❌");
+                    msg.author.send("Accès refusé :lock:");
+                    return;
+                } else {
+                    msg.react("🔓");
+                    msg.author.send("Accès autorisé :unlock:");
+
+                }
             } else {
-                msg.react("🔓");
-                msg.author.send("Accès autorisé :unlock:");
+                msg.react("📡");
             }
         }
 
         msg.react("✅");
-        member.setVoiceChannel(channel_togo.ID);
+        member.setVoiceChannel(freq_togo.ID);
         //log
-        dif_log("🔊 Acces Vocal", member.nickname + " vient d'acceder au channel " + channel_togo.nom);
+        dif_log("🔊 Acces Vocal", member.nickname + " | " + msg.author.username + " vient d'acceder au channel " + freq_togo.nom);
         return;
     }
 
 
     if (command == "listefreq") {
-        send_liste_freq(msg.channel);
+        send_liste_freq(msg.author);
         return;
     }
     if (command == "aidefreq") {
-        send_aide_freq(msg.channel);
-        send_liste_freq(msg.channel);
+        send_aide_freq(msg.author);
+        send_liste_freq(msg.author);
         return;
     }
 
@@ -618,15 +649,16 @@ client.on('message', async msg => {
                 .addField("$setbrouillage X >BLABLA image", "Modifie le brouillage\nX: X% de carracteres brouillés (defaut: 0, pas de brouillage)\n BLABLA: raison du brouillage (optionnel)\nimage: petite image (optionnel)\nDifferents niveaux: [;25[,[25;15[,[15;7[,[7;1]")
                 .addField("$setbrouillageespace X ", "Modifie la chance d'avoir des \"krssssh\"\nX: X% d'espaces transformés")
                 .addField("$setbrouillagecouleur X ", "Pour le brouillage des couleurs... Je sais pas expliquer, mais 80 donne +/-40 /255 de brouillage RGB (je sais c'est pas claire)")
-                .addField("$ban X / $deban X", "Ban/Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
-                .addField("$listeban", "Envoie la liste des bannis")
+                .addField("$ban X / $deban X / $listeban", "Ban/Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
                 .addField("$delaidel X", "Modifie la durée des message\nX: durée en ms")
                 .addField("$cryptage", "Active ou desactive la commande $crypt")
-                .addField("$addmotinterdit MOT", "Ajoute un mot interdit à la liste")
-                .addField("$listemotinterdit", "Affiche la liste des mots interdits")
-                .addField("$addfreqprive nom mdp ID", "Créé un channel vocal privé")
-                .addField("$addfreq nom ID", "Créé un channel vocal publique")
-                .addField("difhelpfreq ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
+                .addField("$addmotinterdit MOT / $listemotinterdit", "Ajoute un regex interdit à la liste / Affiche la liste")
+                .addField("$listefreqmdp", "Affiche la liste des fréquence avec leur ID et leur mdp")
+                .addField("$addfreqprivée nom mdp ID", "Ajoute une frequence privé")
+                .addField("$addfreq nom ID", "Ajoute une frequence publique")
+                .addField("$delfreq nom (ou ID)", "Supprime la frequence")
+                .addField("$changemdpfreq nom (ou ID) mdp", "Change le mdp de la frequence privée")
+                .addField("$difhelpfreq ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
                 .addField("Commandes EVENT", "Laissez Onion faire, assez complexe:\n$maj | $stopmaj | $mise_en_route")
                 .setFooter("Par Onion² pour " + nom_serveur);
             msg.channel.send(embed_signal);
@@ -947,9 +979,10 @@ client.on('message', async msg => {
 
         if (command == "listemotinterdit") { //$addmotinterdit couille
             msg.channel.send("Mots interdits: \n" + configuration.mots_interdits.toString());
+            return;
         }
 
-        if (command == "addfreqprive") { //$addfreqprive nom mdp ID
+        if (command == "addfreqprivée") { //$addfreqprive nom mdp ID
 
             try {
                 let freq = {};
@@ -960,6 +993,7 @@ client.on('message', async msg => {
                 msg.react("✅");
             } catch (error) {
                 dif_log("erreur n°51", error);
+                return;
             }
         }
 
@@ -972,8 +1006,77 @@ client.on('message', async msg => {
                 msg.react("✅");
             } catch (error) {
                 dif_log("erreur n°50", error);
+                return;
             }
         }
+
+        if (command == "changemdpfreq") { //$changemdpfreq nom ou ID mdp
+            try {
+
+                let index = configuration.frequence.TACSAT.findIndex(freq => (args[0] == freq.nom | args[0] == freq.ID));
+                if (index != -1) {
+                    let freq = configuration.frequence.TACSAT[index];
+                    freq.mdp = args[1];
+                    configuration.frequence.TACSAT[index] = freq;
+                    msg.react("✅");
+                } else {
+                    msg.channel.send("Pas de frequence à ce nom...");
+                    return;
+                }
+            } catch (error) {
+                dif_log("erreur n°52", error);
+                return;
+            }
+        }
+
+        if (command == "delfreq") { //$delfreq nom ou ID
+            try {
+
+                let freq_deleted;
+                let index = configuration.frequence.TACSAT.findIndex(freq => (args[0] == freq.nom | args[0] == freq.ID));
+                if (index == -1) {
+                    index = configuration.frequence.freq.findIndex(freq => (args[0] == freq.nom | args[0] == freq.ID));
+                    if (index != -1) {
+                        freq_deleted = configuration.frequence.freq[index];
+                        configuration.frequence.freq.splice(index, 1);
+                        msg.channel.send("Supression de la frequence:\n`$addfreq " + freq_deleted.nom + " " + freq_deleted.ID + "`");
+                    } else {
+                        msg.channel.send("Pas de frequence à ce nom...");
+                        return;
+                    }
+
+                } else {
+                    freq_deleted = configuration.frequence.TACSAT[index];
+                    configuration.frequence.TACSAT.splice(index, 1);
+                    msg.channel.send("Supression de la frequence:\n`$addfreqprivée " + freq_deleted.nom + " " + freq_deleted.ID + " " + freq_deleted.mdp + "`");
+                }
+
+
+            } catch (error) {
+                dif_log("erreur n°53", error);
+                return;
+            }
+        }
+
+        if (command == "listefreqmdp") { //$changemdp nom ou ID mdp
+            let embed = new Discord.RichEmbed()
+                .setTitle("__Liste des fréquences radios__")
+                .setColor('#FFFFFF')
+                .setTimestamp()
+                .setAuthor("Signal", client.user.avatarURL);
+
+            let description = "**Liste des frequences publiques:**";
+            configuration.frequence.freq.forEach(frequence => {
+                description += "\n`$freq " + frequence.nom + "` (ID:" + frequence.ID + ")";
+            });
+            description += "\n\n**Liste des frequences privées:**";
+            configuration.frequence.TACSAT.forEach(tacsat => {
+                description += "\n`$freq " + tacsat.nom + " " + tacsat.mdp + "` (ID:" + tacsat.ID + ")";
+            });
+            embed.setDescription(description);
+            msg.channel.send(embed);
+        }
+
 
 
 
