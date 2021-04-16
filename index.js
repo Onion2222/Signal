@@ -499,6 +499,7 @@ client.on('message', async msg => {
             query_db("UPDATE users SET COULEUR = \"" + utilisateur.COULEUR + "\" WHERE ID=\"" + msg.author.id + "\"");
             return;
         } else {
+            dif_log("Couleur", "Demande changement de couleur bloqué !");
             msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
@@ -506,13 +507,17 @@ client.on('message', async msg => {
     }
     //demande de changement de couleur si activé
     if (msg.content.indexOf("demandechangementcouleur") == 1 & !configuration.changement_couleur) {
+
+
         let ligne = msg.content.split("\n");
         if (ligne.length == 1) {
+            dif_log("Couleur", "Demande aide formulaire couleur");
             msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
         }
 
+        dif_log("Couleur", "Demande changment de couleur\nFormulaire:\n" + msg.cleanContent);
         //si nombre de ligne ok
         if (ligne.length < 3) {
             msg.react("❌");
