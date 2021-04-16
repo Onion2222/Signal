@@ -16,7 +16,7 @@ const Discord = require('discord.js');
 const mysql = require('mysql');
 const fs = require("fs");
 const { crypter, decrypter } = require('./lib/crypt.js');
-const { brouilleCouleurHex, alea_couleur } = require('./lib/couleur.js');
+const { brouilleCouleurHex, alea_couleur, hexcolor_validator } = require('./lib/couleur.js');
 const { cleanup } = require('./lib/cleanup.js');
 const { maj, stopmaj, stopmaj_f, mise_en_route } = require('./lib/event.js');
 const { dateToStringReduit, random, randomTF, validator } = require('./lib/util.js');
@@ -64,7 +64,7 @@ client.on('ready', () => {
     console.log(`Connecté !\nNom:${client.user.tag}`);
     client.user.setActivity(`capter (${appel.toString()}aide / ${appel.toString()}aidefreq )`);
     console.log("=> Le bot Signal vient d'être lancé");
-    console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.size} channels:${client.channels.size} serveur:${client.guilds.size}`);
+    console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.cache.size} channels:${client.channels.cache.size} serveur:${client.guilds.cache.size}`);
 
     //application de la configuration
     dif_log("⚠️ ETAT", "Reconfiguration de signal...");
@@ -453,9 +453,7 @@ client.on('message', async msg => {
                 msg.author.send("Pas d'argument, une couleur aléatoire vous est donc attribuée");
                 args[0] = alea_couleur();
             } else {
-                let regex = new RegExp("#[0-9a-f]{6}", "i");
-
-                if (args[0].search(regex) != 0) {
+                if (hexcolor_validator(args[0]) != 0) {
                     msg.author.send("Erreur, argument incorrect... Se référer à $help");
                     return;
                 } else {
@@ -485,22 +483,64 @@ client.on('message', async msg => {
             return;
         }
     }
-    if (msg.content.indexOf("demandechangementcouleur") == 1) {
+    //demande de changement de couleur si activé
+    if (msg.content.indexOf("demandechangementcouleur") == 1 & !configuration.changement_couleur) {
         let ligne = msg.content.split("\n");
-        let embed = new Discord.MessageEmbed().setColor("#86F67E").setTitle("Demande de changement de couleur");
+
+        //si nombre de ligne ok
+        if (ligne.length < 3) {
+            msg.react("❌");
+            msg.author.send("Merci de respecter le format imposé. :wink:");
+            return;
+        }
+
+        //taille motivation ?
+        if (ligne[2].indexOf("Motivation:") != 0) {
+            msg.react("❌");
+            msg.author.send("Merci de respecter le format imposé. :wink:\n`\"Motivation:\" non trouvé`");
+            return;
+        }
+        if (ligne[2].length < 11 + 20) { //11 offset
+            msg.react("❌");
+            msg.author.send("Vos motivations sont beaucoup trop courtes ! Essayez d'en ecrire plus pour être sûr que les administrateurs valident votre changement de couleur. :wink:\n`taille motivation < 20`");
+            return;
+        }
+        if (ligne[2].length > 1000) { //11 offset
+            msg.react("❌");
+            msg.author.send("Vos motivations sont beaucoup trop longues ! Essayez de synthestiser ou contactez un admin. :wink:\n`taille motivation >1000`");
+            return;
+        }
+
+        //test couleur
+        let arg_couleur = ligne[1].split(" ").filter(function(i) { return i; }); //separer la ligne, couleur forcement à index 1 et le filtre enleve les elements vide dû aux ajouts d'espace apres
+        //console.log(arg_couleur);
+        if (arg_couleur.length != 2 | arg_couleur[0] != "Couleur:") {
+            msg.author.send("Merci de respecter le format imposé. :wink:\n`\"Couleur:\" non trouvé`");
+            return;
+        }
+        if (arg_couleur[1] != "RANDOM" & hexcolor_validator(arg_couleur[1]) == -1) {
+            msg.react("❌");
+            msg.author.send("La couleur est invalide... Utilisez le format de couleur demandé (avec le \"#\") ou bien écrivez RANDOM si vous souhaitez une couleur aléatoire.\n`$aidecouleur` pour plus d'informations :wink:");
+            return;
+        }
+
+
+        let embed = new Discord.MessageEmbed().setColor("#86F67E").setTitle(`Demande de changement de couleur`);
         embed.setDescription(`L'utilisateur **${msg.author.tag}** \\ **${member.nickname}** demande un changement de couleur`);
-        embed.addField("Motivation:", `\`\`\`${ligne[2].slice(11)}\`\`\``);
-        embed.addField("Couleur voulue:", `\`\`\`${ligne[1].slice(8)}\`\`\``);
-        embed.addField("Commande pour valider ce changement:", `\`\`\`$validechgtcouleur ${msg.author.id} ${ligne[1].slice(8)}\`\`\``);
+        embed.addField(`Motivation:`, `\`\`\`${ligne[2].slice(11)}\`\`\``);
+        embed.addField(`Couleur voulue:`, `\`\`\`${arg_couleur[1]}\`\`\``); //bien couper ou il y a la couleur
+        embed.addField(`Commande pour valider ce changement:`, `\`\`\`$validechgtcouleur ${msg.author.id} ${arg_couleur[1]}\`\`\``);
         Channel_log.send(embed);
+
         msg.react("✅");
-        msg.channel.send("Demande envoyée !");
+        msg.author.send("Demande envoyée ! Vous serz contacté quand le changement sera effectif !");
+        return;
     }
 
     if (command === 'macouleur') {
         dif_log("Couleur", "Interrogation couleur par l'utilisateur " + msg.author.username);
         let embed = new Discord.MessageEmbed().setColor(utilisateur.COULEUR)
-            .setTitle('Votre couleur est ' + utilisateur.COULEUR);
+            .setTitle('Votre couleur est #' + utilisateur.COULEUR);
         msg.author.send(embed);
         return;
     }
@@ -694,18 +734,26 @@ client.on('message', async msg => {
 
         if (command == "validechgtcouleur") {
             //$validechgtcouleur 328584955934277633  #0FF0F6
-            let couleur;
-            if (args[1] == "RANDOM") {
-                couleur = alea_couleur();
-            } else {
-                couleur = args[1].replace("#", "");
+            try {
+                let couleur;
+                if (args[1] == "RANDOM") {
+                    couleur = alea_couleur();
+                } else {
+                    couleur = args[1].replace("#", "");
+                }
+                query_db("UPDATE users SET COULEUR = \"" + couleur + "\" WHERE ID=\"" + args[0] + "\"");
+                msg.react("✅");
+                //message pour avertir utilisateur
+                let user = await client.users.fetch(args[0]);
+                user.send("Votre demande de changement de couleur a été validée :yum:\nConsultez votre nouvelle couleur avec la commande `$macouleur`");
+
+            } catch (error) {
+                msg.channel.send("Il semble y avoir une erreur dans la commande, contactez onion !");
+                console.log(error);
             }
-            query_db("UPDATE users SET COULEUR = \"" + couleur + "\" WHERE ID=\"" + args[0] + "\"");
-            msg.react("✅");
-            //message pour avertir utilisateur
-            let user = await client.users.fetch(args[0])
-            user.send("Votre demande de changement de couleur a été validée :yum:");
         }
+
+
 
         if (command == "coloration") {
             configuration.coloration = !configuration.coloration;
