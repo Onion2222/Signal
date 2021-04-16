@@ -1,10 +1,10 @@
 {
     "name": "signal",
-    "version": "2.5.0",
+    "version": "3.5.0",
     "description": "Signal",
     "main": "index.js",
     "dependencies": {
-        "discord.js": "^11.5.1",
+        "discord.js": "12.5.3",
         "mysql": "^2.18.1"
     },
     "author": "Onion",

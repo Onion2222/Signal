@@ -1,0 +1,16 @@
+{
+    "TOKEN": "--",
+    "ID_admin": "--",
+    "ID_serveur": "--",
+    "ID_radio": "--",
+    "ID_log": "--",
+    "MP_admin": false,
+    "debug": false,
+    "version": "3.5____discord.js_v12",
+    "Serveur_SQL": {
+        "host": "--",
+        "user": "--",
+        "password": "--",
+        "database": "--"
+    }
+}
