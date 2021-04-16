@@ -22,6 +22,8 @@ const { maj, stopmaj, stopmaj_f, mise_en_route } = require('./lib/event.js');
 const { dateToStringReduit, random, randomTF, validator } = require('./lib/util.js');
 
 const config = require("./data/conf_bot.json");
+const string_message = require("./data/string_message.json");
+
 
 console.log("VERSION " + config.version);
 
@@ -191,10 +193,10 @@ client.on('message', async msg => {
         //mysql
         query_db("INSERT INTO users (`ID`, `COULEUR`, `bloque`) VALUES (\'" + utilisateur.ID + "\',\'" + utilisateur.COULEUR + "\'," + utilisateur.bloque + ")");
         //message premiere utilisation
-        msg.author.send("Bonjour, il semble que ce soit votre premiere utilisation de __signal__, n'oubliez pas de consulter l'aide ($help) et de configurer votre couleur de message avec $aidecouleur");
+        msg.author.send(string_message.accueil); //message d'accueil
     } else {
         if (utilisateur.bloque & msg.author.id != config.ID_admin) {
-            msg.author.send(":warning: Il semblerait que vous soyez bloqué par signal... Contactez un administrateur pour plus d'informations.");
+            msg.author.send(string_message.bloque); //message bloqué
             dif_log("Utilisateur banni !", msg.author.username + " a tenté d'envoyer:\n`" + msg.content + "`");
             return;
         }
@@ -208,7 +210,7 @@ client.on('message', async msg => {
         if (msg.channel.id == config.ID_radio | msg.channel.type !== "text") { //si poste dans channel roleplay ou en pm sans caractere d'appel
             if (configuration.taille_max_msg === 0) { //si sur serveru avec limitation caractere
                 if (msg.content.length > 1500) {
-                    msg.author.send("Ton message est trop long (il fait plus de 1500 caracteres)\nDiscord limite la taille de mes message à 2000 caracteres, je vais donc l'envoyer en 2 partis pour eviter les problèmes avec le brouillage.");
+                    msg.author.send(string_message.troplong);
                     Send_Message(msg, msg.content.slice(0, msg.content.length / 2) + "....", utilisateur, member, false);
                     Send_Message(msg, "...." + msg.content.slice(msg.content.length / 2, msg.content.length), utilisateur, member, false);
                 } else {
@@ -216,7 +218,7 @@ client.on('message', async msg => {
                 }
             } else { //si limitation
                 if (msg.content.length > configuration.taille_max_msg) {
-                    msg.author.send("Ton message est trop long (il fait plus de " + configuration.taille_max_msg.toString() + " caracteres), il ne sera donc pas envoyé.\nLe serveur qui heberge signal limite le nombre de caracteres");
+                    msg.author.send(string_message.troplong_limiteadmin.replace("%LIMITE%", configuration.taille_max_msg.toString()));
                 } else {
                     Send_Message(msg, msg.content, utilisateur, member, false);
                 }
@@ -241,7 +243,7 @@ client.on('message', async msg => {
         if (!member.voice.channelID) {
             msg.react("📞");
             msg.react("❌");
-            msg.author.send("Ooopsie ! Vous devez être sur un channel vocal pour être transferé ! :)");
+            msg.author.send(string_message.freq.notconnected);
             return;
         } else if (args[0] == "off") {
             msg.react("🔇");
@@ -256,7 +258,7 @@ client.on('message', async msg => {
             if (index_chan == -1) {
                 msg.react("🛑");
                 msg.react("❌");
-                msg.author.send("Ooopsie ! Tu ne sembles pas être dans une fréquence publique... :(");
+                msg.author.send(string_message.freq.notpublic);
                 return;
             }
             if (args[0] == "+") {
@@ -275,17 +277,17 @@ client.on('message', async msg => {
                 if (!freq_togo) {
                     msg.react("❓");
                     msg.react("❌");
-                    msg.author.send("Ooopsie ! Aucun channel ne possède ce nom... :confused:");
+                    msg.author.send(string_message.freq.unknow);
                     return;
                 }
                 if (args[1] != freq_togo.mdp) {
                     msg.react("🔒");
                     msg.react("❌");
-                    msg.author.send("Accès refusé :lock:");
+                    msg.author.send(string_message.freq.locked);
                     return;
                 } else {
                     msg.react("🔓");
-                    msg.author.send("Accès autorisé :unlock:");
+                    msg.author.send(string_message.freq.unlocked);
 
                 }
             } else {
@@ -310,16 +312,17 @@ client.on('message', async msg => {
         return;
     }
 
+    /*
     if (command === "hrp") {
         dif_log("HRP", "Utilisateur : " + msg.author.username);
         msg.channel.send("Attention, ce que tu viens de demander/dire semble HRP !\nSi tu souhaites parler de manière RP, je t'invite à m'envoyer un message privé qui sera retransmis __directement__ et __anonymement__ sur le channel <#" + Channel_radio.id + ">\n(`$help` pour plus d'information)");
         msg.delete();
         return;
-    }
+    }*/
 
     if (command === "ping") {
         dif_log("Ping", "Utilisateur : " + msg.author.username);
-        msg.reply("Signal est activé");
+        msg.reply(string_message.ping);
         return;
     }
 
@@ -330,18 +333,32 @@ client.on('message', async msg => {
 
         if (msg.channel.type === "text") {
             msg.channel.send(new Discord.MessageEmbed()
-                .setTitle("__Aide__")
-                .setDescription("Envoie de l'aide par message privé")
+                .setTitle(string_message.help.help)
+                .setDescription(string_message.help.mp)
                 .setColor('#1cfc03')
                 .setTimestamp()
                 .setAuthor("Signal", client.user.avatarURL())
-            ).then(m => m.delete(4000));
+            ).then(m => m.delete({ timeout: 4000 }));
         }
         return;
     }
 
     if (command === "aidecouleur") {
         dif_log("Demande d'aide couleur", "Utilisateur : " + msg.author.username);
+
+        let embed = new Discord.MessageEmbed();
+        embed.setTitle("__**SIGNAL**__");
+        embed.setColor(16312092);
+        embed.setTimestamp();
+        embed.setFooter(string_message.help.footer + nom_serveur);
+        //embed.setThumbnail(client.user.avatarURL());
+        embed.setDescription(string_message.help.color.description);
+        embed.addField(string_message.help.color.getcode.name, string_message.help.color.getcode.value);
+        embed.addField(string_message.help.color.knowcolor.name, string_message.help.color.knowcolor.value);
+        embed.addField(string_message.help.color.random.name, string_message.help.color.random.value);
+        embed.addField(string_message.help.note.name, string_message.help.note.value);
+
+        /*
         const embed = {
             "title": "__**SIGNAL**__",
             "description": "Bienvenue dans l'aide couleur du bot Signal\nPour modifier la couleur des messages, il faut taper ```$couleur``` suivit du code hexadecimal de la couleur de ton choix\nExemple:```$couleur #ff33da```coloriera votre message en **rose**",
@@ -365,22 +382,26 @@ client.on('message', async msg => {
                 "value": "Vous pouvez obtenir une couleur aléatoire en tapant simplement ```$couleur```"
             }]
         };
+        */
+
+
+
         msg.author.send({ embed });
         if (msg.channel.type === "text") {
             msg.channel.send(new Discord.MessageEmbed()
-                .setTitle("__Aide__")
-                .setDescription("Envoie de l'aide par message privé")
+                .setTitle(string_message.help.help)
+                .setDescription(string_message.help.mp)
                 .setColor('#1cfc03')
                 .setTimestamp()
                 .setAuthor("Signal", client.user.avatarURL())
-            ).then(m => m.delete(4000));
+            ).then(m => m.delete({ timeout: 4000 }));
         }
         return;
     }
 
     if (command === "del") {
         if (utilisateur.DERMSG == undefined) {
-            msg.author.send("Aucun message enregistré...");
+            msg.author.send(string_message.delnomsg);
             return;
         }
         //let Channel_radio = client.channels.get(config.ID_radio);
@@ -389,13 +410,13 @@ client.on('message', async msg => {
 
             dif_log("Supression", "=>Suppression demandée du dernier message de " + msg.author.username);
 
-            msg.author.send("Le message a été supprimé");
+            msg.author.send(string_message.deleted);
             if (msg.channel.type === "dm") {
                 msg.react("✅");
                 msg.react("♻️");
             }
         }).catch(err => {
-            msg.author.send("Il semble y avoir un problème, le message ne peut pas être supprimé (message éxpiré ou déjà supprimé)");
+            msg.author.send(string_message.alreadydeleted);
             if (msg.channel.type === "dm") msg.react("🚫");
         });
         return;
@@ -414,7 +435,7 @@ client.on('message', async msg => {
             Send_Message(msg, content, utilisateur, member, true, clef);
         } else {
             dif_log("Cryptage bloqué", "Utilisateur : " + msg.author.username);
-            msg.author.send("Le cryptage est actuellement interdit sur le canal transmission. (voir avec les administrateurs de " + nom_serveur + ")\n```" + msg.cleanContent + "```");
+            msg.author.send(string_message.blockcrypt.replace("%NAMESERV%", nom_serveur).replace("%MSG%", msg.cleanContent)); //"Le cryptage est actuellement interdit sur le canal transmission. (voir avec les administrateurs de " + nom_serveur + ")\n```" + msg.cleanContent + "```"
         }
         return;
     }
@@ -435,11 +456,11 @@ client.on('message', async msg => {
                 msg.react("🔐");
             } else {
                 //msg.author.send("🔐");
-                msg.author.send("Évite de taper ce genre de commande dans un channel textuel !\nLa prochaine fois, envoie la moi directement par mp...");
+                msg.author.send(string_message.keyshared);
             }
         } else {
             if (msg.channel.type !== "text") { msg.react("🚫"); } else { msg.author.send("🚫"); }
-            msg.author.send("Il y a une erreur, tapez $help pour plus d'informations");
+            msg.author.send(string_message.decrypt_error);
             msg.author.send("```" + msg.content + "```");
         }
         return;
@@ -450,11 +471,11 @@ client.on('message', async msg => {
         dif_log("Couleur", "Changement de couleur demandé par l'utilisateur " + msg.author.username + "\nMessage: `" + msg.content + "`");
         if (configuration.changement_couleur) {
             if (args[0] == undefined) {
-                msg.author.send("Pas d'argument, une couleur aléatoire vous est donc attribuée");
+                msg.author.send(string_message.color.noarg);
                 args[0] = alea_couleur();
             } else {
                 if (hexcolor_validator(args[0]) != 0) {
-                    msg.author.send("Erreur, argument incorrect... Se référer à $help");
+                    msg.author.send(string_message.color.wrongarg);
                     return;
                 } else {
                     //bon
@@ -463,11 +484,11 @@ client.on('message', async msg => {
             }
             try {
                 let embed = new Discord.MessageEmbed().setColor(args[0])
-                    .setTitle('Couleur définie sur ' + args[0])
-                    .addField("Couleur précedente " + utilisateur.COULEUR, "🎨");
+                    .setTitle(string_message.color.result + args[0])
+                    .addField(string_message.color.previous + utilisateur.COULEUR, "🎨");
                 msg.author.send(embed);
             } catch (error) {
-                msg.author.send("Erreur, argument incorrect... Se référer à $help");
+                msg.author.send(string_message.color.wrongarg);
                 return;
             }
             //ecrire couleur dans utilisateur
@@ -478,7 +499,7 @@ client.on('message', async msg => {
             query_db("UPDATE users SET COULEUR = \"" + utilisateur.COULEUR + "\" WHERE ID=\"" + msg.author.id + "\"");
             return;
         } else {
-            msg.author.send("Le changement de couleur est interdit sans motivation valide.\nPour faire une demande de changement de couleur merci de copier/coller ce formulaire, le remplir en remplaçant ce qui est écrit entre crochet et me l'envoyer. Il sera ensuite soumis aux administrateur pour validation.");
+            msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
         }
@@ -486,28 +507,33 @@ client.on('message', async msg => {
     //demande de changement de couleur si activé
     if (msg.content.indexOf("demandechangementcouleur") == 1 & !configuration.changement_couleur) {
         let ligne = msg.content.split("\n");
+        if (ligne.length == 1) {
+            msg.author.send(string_message.color.blocked);
+            msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
+            return;
+        }
 
         //si nombre de ligne ok
         if (ligne.length < 3) {
             msg.react("❌");
-            msg.author.send("Merci de respecter le format imposé. :wink:");
+            msg.author.send(string_message.color.askchgt.wrongformat);
             return;
         }
 
         //taille motivation ?
         if (ligne[2].indexOf("Motivation:") != 0) {
             msg.react("❌");
-            msg.author.send("Merci de respecter le format imposé. :wink:\n`\"Motivation:\" non trouvé`");
+            msg.author.send(string_message.color.askchgt.wrongformat + "\n`\"Motivation:\" non trouvé`");
             return;
         }
         if (ligne[2].length < 11 + 20) { //11 offset
             msg.react("❌");
-            msg.author.send("Vos motivations sont beaucoup trop courtes ! Essayez d'en ecrire plus pour être sûr que les administrateurs valident votre changement de couleur. :wink:\n`taille motivation < 20`");
+            msg.author.send(string_message.color.askchgt.toshort + "\n`taille motivation < 20`");
             return;
         }
         if (ligne[2].length > 1000) { //11 offset
             msg.react("❌");
-            msg.author.send("Vos motivations sont beaucoup trop longues ! Essayez de synthestiser ou contactez un admin. :wink:\n`taille motivation >1000`");
+            msg.author.send(string_message.color.askchgt.tolong + "\n`taille motivation >1000`");
             return;
         }
 
@@ -515,12 +541,12 @@ client.on('message', async msg => {
         let arg_couleur = ligne[1].split(" ").filter(function(i) { return i; }); //separer la ligne, couleur forcement à index 1 et le filtre enleve les elements vide dû aux ajouts d'espace apres
         //console.log(arg_couleur);
         if (arg_couleur.length != 2 | arg_couleur[0] != "Couleur:") {
-            msg.author.send("Merci de respecter le format imposé. :wink:\n`\"Couleur:\" non trouvé`");
+            msg.author.send(string_message.color.askchgt.wrongformat + "\n`\"Couleur:\" non trouvé`");
             return;
         }
         if (arg_couleur[1] != "RANDOM" & hexcolor_validator(arg_couleur[1]) == -1) {
             msg.react("❌");
-            msg.author.send("La couleur est invalide... Utilisez le format de couleur demandé (avec le \"#\") ou bien écrivez RANDOM si vous souhaitez une couleur aléatoire.\n`$aidecouleur` pour plus d'informations :wink:");
+            msg.author.send(string_message.color.askchgt.wrongcolor);
             return;
         }
 
@@ -533,14 +559,14 @@ client.on('message', async msg => {
         Channel_log.send(embed);
 
         msg.react("✅");
-        msg.author.send("Demande envoyée ! Vous serz contacté quand le changement sera effectif !");
+        msg.author.send(string_message.color.askchgt.sent);
         return;
     }
 
     if (command === 'macouleur') {
         dif_log("Couleur", "Interrogation couleur par l'utilisateur " + msg.author.username);
         let embed = new Discord.MessageEmbed().setColor(utilisateur.COULEUR)
-            .setTitle('Votre couleur est #' + utilisateur.COULEUR);
+            .setTitle(string_message.color.yourcolor + utilisateur.COULEUR);
         msg.author.send(embed);
         return;
     }
@@ -590,6 +616,7 @@ client.on('message', async msg => {
                 .addField("$changemdpfreq nom (ou ID) mdp", "Change le mdp de la frequence privée")
                 .addField("$difhelpfreq ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
                 .addField("$evalSQL", "Evalue une commande SQL :warning: NE PAS UTILISER SI VOUS N'ETES PAS SUR !!!")
+                .addField("$chgtcouleur", "Active ou désactive le changement de couleur libre")
                 .addField("Commandes EVENT", "Laissez Onion faire, assez complexe:\n$maj | $stopmaj | $mise_en_route")
                 .setFooter("Par Onion² pour " + nom_serveur);
             msg.channel.send(embed_signal);
@@ -677,7 +704,7 @@ client.on('message', async msg => {
             //let Channel_radio = client.channels.get(config.ID_radio); //test: 597466263144366140
             //if (!Channel_radio) return console.error("Channel " + ID + " non existant !");
             Channel_radio.send(embed_admin).then(sent => { // 'sent' est le message envoyé
-                sent.delete(configuration.duree_messsage);
+                sent.delete({ timeout: configuration.duree_messsage });
                 msg.react("✅");
             });
             return;
@@ -714,21 +741,25 @@ client.on('message', async msg => {
 
         if (command == "cryptage") {
             configuration.cryptage = !configuration.cryptage;
-            if (configuration.cryptage) {
-                msg.channel.send("Cryptage autorisé");
-                return;
-            }
-            msg.channel.send("Cryptage interdit");
+            if (configuration.cryptage) msg.channel.send("Cryptage autorisé");
+            else msg.channel.send("Cryptage interdit");
         }
 
         if (command == "actif") {
             configuration.actif = !configuration.actif;
             if (configuration.actif) {
                 msg.channel.send("Signal est maintenant __actif__");
-                return;
+
             } else {
                 msg.channel.send("Signal n'est maintenant __plus actif__");
             }
+        }
+
+        if (command == "chgtcouleur") {
+            configuration.changement_couleur = !configuration.changement_couleur;
+            if (configuration.changement_couleur) msg.channel.send("Changement de couleur libre __actif__");
+            else msg.channel.send("Changement de couleur libre __plus actif__");
+
         }
 
 
@@ -757,29 +788,20 @@ client.on('message', async msg => {
 
         if (command == "coloration") {
             configuration.coloration = !configuration.coloration;
-            if (configuration.coloration) {
-                msg.channel.send("Les couleurs seront maintenant __personnalisable__");
-                return;
-            }
-            msg.channel.send("Tout sera maintenant en __Jaune__");
+            if (configuration.coloration) msg.channel.send("Les couleurs seront maintenant __personnalisable__");
+            else msg.channel.send("Tout sera maintenant en __Jaune__");
         }
 
         if (command == "fichier") {
             configuration.fichier = !configuration.fichier;
-            if (configuration.fichier) {
-                msg.channel.send("Les utilisateurs peuvent maintenant envoyer des fichiers (hormis audio)");
-                return;
-            }
-            msg.channel.send("Les utilisateurs ne peuvent plus envoyer de fichiers (hormis audio)");
+            if (configuration.fichier) msg.channel.send("Les utilisateurs peuvent maintenant envoyer des fichiers (hormis audio)");
+            else msg.channel.send("Les utilisateurs ne peuvent plus envoyer de fichiers (hormis audio)");
         }
 
         if (command == "audio") {
             configuration.audio = !configuration.audio;
-            if (configuration.audio) {
-                msg.channel.send("Les utilisateurs peuvent maintenant envoyer des fichiers audios (.mp3 / .wav)");
-                return;
-            }
-            msg.channel.send("Les utilisateurs ne peuvent plus envoyer de fichiers audio (.mp3 / .wav)");
+            if (configuration.audio) msg.channel.send("Les utilisateurs peuvent maintenant envoyer des fichiers audios (.mp3 / .wav)");
+            else msg.channel.send("Les utilisateurs ne peuvent plus envoyer de fichiers audio (.mp3 / .wav)");
         }
 
         if (command == "difhelp") {
@@ -1057,7 +1079,6 @@ client.on('message', async msg => {
             }
 
         }
-
         fs.writeFileSync('./data/conf_signal.json', JSON.stringify(configuration, null, 2)); //sauvegarde des modifications
 
     } //fin ID LOG
@@ -1200,7 +1221,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
                             listeFichier.push(var2.url); //yes  recuperer les fichiers dans listeFichier
                             log += "OK";
                         } else {
-                            msg.author.send("Vous ne pouvez pas envoyer le fichier audio " + var2.filename + " via le bot (reglage administrateur)");
+                            msg.author.send(string_message.sending_msg.file.no_audio + var2.filename + string_message.sending_msg.file.end);
                             log += "NOK";
                         }
                         break;
@@ -1210,7 +1231,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
                             listeFichier.push(var2.url); //yes  recuperer les fichiers dans listeFichier
                             log += "OK";
                         } else {
-                            msg.author.send("Vous ne pouvez pas envoyer le fichier " + var2.filename + " via le bot (reglage administrateur)");
+                            msg.author.send(string_message.sending_msg.file.no_file + var2.filename + string_message.sending_msg.file.end);
                             log += "NOK";
                         }
                         break;
@@ -1223,7 +1244,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
     let mot_interdits = validator(content, configuration.mots_interdits);
 
     if (mot_interdits.length != 0) {
-        msg.author.send("Il semblerait que tu utilises des mots interdits :thinking:\nVoici la liste des mots repérés: " + mot_interdits.toString());
+        msg.author.send(string_message.sending_msg.word_banned + mot_interdits.toString());
         dif_log(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```");
         return;
     }
@@ -1265,14 +1286,14 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
         if (cryptage) {
 
             new_text = crypter(new_text, clef); //affecter les cryptage à la modulation ?
-            log += "|cryptage(" + clef + ")|";
-            embed_signal.setTitle("Message crypté reçu:")
+            log += "clef crypto: `" + clef + "`\n";
+            embed_signal.setTitle(string_message.sending_msg.rec_crypted)
                 .setDescription("```" + new_text + "```")
                 .setColor("#000000");
 
         } else {
             embed_signal.setDescription(new_text)
-                .setTitle("Message reçu:");
+                .setTitle(string_message.sending_msg.rec);
         }
         Channel_radio.send(embed_signal, "", { files: listeFichier }).then(sent => CallBack_Message(sent, msg, utilisateur, log_titre, log)).catch(err => Error(1, err));
     } else {
@@ -1309,72 +1330,56 @@ function update_user(id, utilisateur) {
 } */
 
 function embed_aide(Channel) {
-    let embed = {
-        "title": "__**SIGNAL**__",
-        "description": "Bienvenue dans l'aide du bot Signal\n\n",
-        "color": 16312092,
-        "timestamp": new Date(),
-        "footer": {
-            "icon_url": client.user.avatarURL(),
-            "text": "Par Onion² pour " + nom_serveur
-        },
-        "thumbnail": {
-            "url": client.user.avatarURL()
-        },
-        "fields": [{
-                "name": "__Envoyer un message anonymement__",
-                "value": "Pour envoyer un message anonymement sur le channel <#" + Channel_radio.id + ">, envoyez un message privé au bot <@" + client.user.id + ">\nVotre message sera automatiquement brouillé"
-            },
-            {
-                "name": "__Utiliser le cryptage__",
-                "value": "Pour crypter et décrypter un message avec un clef de chiffrement, tapez:\n```$crypt clef message\n$decrypt clef message_crypté```\nAvec **__clef__**: votre clef de chiffrement (mot de passe)\n:warning: Votre clef de cryptage ne doit pas contenir d'espace !\n:warning: Le code n'est pas incraquable, il s'agit d'un code vigenere adapté\nhttps://fr.wikipedia.org/wiki/Chiffre_de_Vigen%C3%A8re"
-            },
-            /*
-                        {
-                            "name": "__Utiliser le cryptage__",
-                            "value": "Pour crypter un message avec un clef de chiffrement, tapez:\n```$crypt clef message```\nAvec **__clef__**: votre clef de chiffrement (mot de passe)\n:warning: Votre clef de cryptage ne doit pas contenir d'espace !\n:warning: Le code n'est pas incraquable, il s'agit d'un code vigenere adapté\nhttps://fr.wikipedia.org/wiki/Chiffre_de_Vigen%C3%A8re"
-                        },
-                        {
-                            "name": "__Utiliser le décryptage__",
-                            "value": "Pour utiliser l'outil de décryptage, tapez:\n```$decrypt clef message_crypté```\nAvec **__clef__**: votre clef de chiffrement du message (mot de passe)"
-                        },*/
-            {
-                "name": "__Modifier la couleur de son message__",
-                "value": "Pour obtenir de l'aide sur la couleur des message, tapez:\n```$aidecouleur```\nPour simplement changer sa couleur, tapez:\n```$couleur```"
-            },
-            {
-                "name": "__Supprimer le dernier message envoyé__",
-                "value": "Pour supprimer votre dernier message envoyé, tapez:\n```$del```"
-            },
-            /*{
-                "name": "__Brouiller son message__",
-                "value": "Pour brouiller son message, tapez:\n```$brouiller X Y message```\nX% de caractères brouillés, Y% d'espace brouillés"
-            },*/
-            {
-                "name": "Donation",
-                "value": "Signal est entierement gratuit, mais vous pouvez faire un don sur ce lien\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormément !"
-            },
-            {
-                "name": "__Note__",
-                //"value": ":paperclip: Vous pouvez envoyer n'importe quel fichier en l'attachant à votre commande\n:loudspeaker: Des suggestions ? Besoin d'aide ? Une version pour votre serveur ? Contactez onion#3562\n\n**$credit** pour plus d'informations"
-                "value": ":loudspeaker: Des suggestions ? Besoin d'aide ? Une version pour votre serveur ? Contactez onion#3562\n\n**$credit** pour plus d'informations"
-            }
-        ]
-    };
+
+    let embed = new Discord.MessageEmbed()
+        .setTitle("__**SIGNAL**__")
+        .setDescription(string_message.help.general.description)
+        .setColor(16312092)
+        .setTimestamp()
+        .setFooter(string_message.help.footer + nom_serveur, client.user.avatarURL());
+    //.setThumbnail(client.user.avatarURL());
+    //msg
+    embed.addField(string_message.help.general.msg.name, string_message.help.general.msg.value.replace("%IDCHAN%", Channel_radio.id).replace("%IDCLIENT%", client.user.id));
+
+    //embed.addField('\u200b', '\u200b');
+
+    if (configuration.cryptage) {
+        embed.addField(string_message.help.general.crypt.name, string_message.help.general.crypt.value);
+    }
+    //cryptage
+    //chgt couleur
+    if (configuration.changement_couleur) {
+        embed.addField(string_message.help.general.chgtcouleur.name, string_message.help.general.chgtcouleur.value);
+    } else {
+        embed.addField(string_message.help.general.askchgtcouleur.name, string_message.help.general.askchgtcouleur.value);
+    }
+    //del
+    embed.addField(string_message.help.general.del.name, string_message.help.general.del.value);
+
+    //embed.addField('\u200b', '\u200b');
+
+    //donate
+    embed.addField(string_message.help.general.donate.name, string_message.help.general.donate.value);
+    //note
+    embed.addField(string_message.help.note.name, string_message.help.note.value);
+
     Channel.send({ embed });
+
 }
+
+
 
 function send_liste_freq(chan) {
     let embed = new Discord.MessageEmbed()
-        .setTitle("__Liste des fréquences radios__")
+        .setTitle(string_message.help.freq.list.name)
         .setColor('#1cfc03')
         .setTimestamp()
         .setAuthor("Signal", client.user.avatarURL());
-    let description = "**Liste des frequences publiques:**";
+    let description = string_message.help.freq.list.public;
     configuration.frequence.freq.forEach(frequence => {
         description += "\n`$freq " + frequence.nom + "`";
     });
-    description += "\n\n**Liste des frequences privées:**";
+    description += "\n\n" + string_message.help.freq.list.private;
     configuration.frequence.TACSAT.forEach(tacsat => {
         description += "\n`$freq " + tacsat.nom + " ████████`";
     });
@@ -1384,23 +1389,23 @@ function send_liste_freq(chan) {
 
 function send_aide_freq(chan) {
     let embed = new Discord.MessageEmbed()
-        .setTitle("__Aide pour les fréquences radios__")
-        .setDescription("Avant d'integrer une fréquence, vous devez être connecté à un channel vocal")
+        .setTitle(string_message.help.freq.help.title)
+        .setDescription(string_message.help.freq.help.description)
         .setColor('#1cfc03')
         .setTimestamp()
         .setThumbnail(client.user.avatarURL())
         //.setAuthor("Signal", client.user.avatarURL())
-        .addField("Acceder à une fréquence publique:", "`$freq` suivit du nom de la frequence")
-        .addField("Acceder à une fréquence privée:", "`$freq` suivit du nom de la frequence puis du mot de passe")
-        .addField("Obtenir la liste des fréquences disponibles:", "`$listefreq`")
-        .addField("Se connecter à une fréquence aléatoire", "`$freq on`")
-        .addField("Se déconnecter des fréquences", "`$freq off`")
-        .addField("Aller sur la fréquence suivante:", "`$freq +`")
-        .addField("Aller sur la fréquence précédente:", "`$freq -`")
-        .addField("Exemple:", "Si vous souhaitez aller sur la fréquence sécurisée 34567.8 et que le mot de passe est \"voiture\", vous devez taper\n`$freq 34567.8 voiture`")
+        .addField(string_message.help.freq.help.gopublic.name, string_message.help.freq.help.gopublic.value)
+        .addField(string_message.help.freq.help.goprivate.name, string_message.help.freq.help.goprivate.value)
+        .addField(string_message.help.freq.help.list.name, string_message.help.freq.help.list.value)
+        .addField(string_message.help.freq.help.on.name, string_message.help.freq.help.on.value)
+        .addField(string_message.help.freq.help.off.name, string_message.help.freq.help.off.value)
+        .addField(string_message.help.freq.help.next.name, string_message.help.freq.help.next.value)
+        .addField(string_message.help.freq.help.previous.name, string_message.help.freq.help.previous.value)
+        .addField(string_message.help.freq.help.exemple.name, string_message.help.freq.help.exemple.value)
         .addField('\u200b', '\u200b')
-        .addField("Un problème, une question, une suggestion ?", "Contactez Onion#3562")
-        .setFooter("Par Onion² pour " + nom_serveur, client.user.avatarURL());
+        .addField(string_message.help.note.name, string_message.help.note.value)
+        .setFooter(string_message.help.footer + nom_serveur, client.user.avatarURL());
     chan.send(embed);
 }
 

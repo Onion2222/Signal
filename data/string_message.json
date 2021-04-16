@@ -1,0 +1,140 @@
+{
+    "accueil": "Bonjour, il semble que ce soit votre premiere utilisation de __signal__, n'oubliez pas de consulter l'aide ($help) et de configurer votre couleur de message avec $aidecouleur",
+    "bloque": ":warning: Il semblerait que vous soyez bloqué par signal... Contactez un administrateur pour plus d'informations.",
+    "troplong": "Ton message est trop long (il fait plus de 1500 caracteres)\nDiscord limite la taille de mes message à 2000 caracteres, je vais donc l'envoyer en 2 partis pour eviter les problèmes avec le brouillage.",
+    "troplong_limiteadmin": "Ton message est trop long (il fait plus de %LIMITE% caracteres), il ne sera donc pas envoyé.\nLe serveur qui heberge signal limite le nombre de caracteres",
+    "freq": {
+        "notconnected": "Ooopsie ! Vous devez être sur un channel vocal pour être transferé ! :confused:",
+        "notpublic": "Ooopsie ! Tu ne sembles pas être dans une fréquence publique... :confused:",
+        "unknow": "Ooopsie ! Aucun channel ne possède ce nom... :confused:",
+        "locked": "Accès refusé :lock:",
+        "unlocked": "Accès autorisé :unlock:"
+    },
+    "ping": "Signal est activé",
+    "delnomsg": "Aucun message enregistré...",
+    "deleted": "Le message a été supprimé",
+    "alreadydeleted": "Il semble y avoir un problème, le message ne peut pas être supprimé (message éxpiré ou déjà supprimé)",
+    "blockcrypt": "Le cryptage est actuellement interdit sur le canal transmission. (voir avec les administrateurs de %NAMESERV%)\n```%MSG%```",
+    "keyshared": "Évite de taper ce genre de commande dans un channel textuel !\nLa prochaine fois, envoie la moi directement par mp...",
+    "decrypt_error": "Il y a une erreur, tapez `$help` pour plus d'informations",
+    "color": {
+        "noarg": "Pas d'argument, une couleur aléatoire vous est donc attribuée",
+        "wrongarg": "Erreur, argument incorrect... Se référer à `$help`",
+        "result": "Couleur définie sur ",
+        "previous": "Couleur précedente ",
+        "blocked": "Le changement de couleur est interdit sans motivation valide.\nPour faire une demande de changement de couleur merci de copier/coller ce formulaire, le remplir en remplaçant ce qui est écrit entre crochets et me l'envoyer. Il sera ensuite soumis aux administrateurs pour validation.",
+        "askchgt": {
+            "wrongformat": "Merci de respecter le format imposé. :wink:",
+            "toshort": "Vos motivations sont beaucoup trop courtes ! Essayez d'en ecrire plus pour être sûr que les administrateurs valident votre changement de couleur. :wink:",
+            "tolong": "Vos motivations sont beaucoup trop longues ! Essayez de synthestiser ou contactez un admin. :wink:",
+            "wrongcolor": "La couleur est invalide... Utilisez le format de couleur demandé (avec le \"#\") ou bien écrivez RANDOM si vous souhaitez une couleur aléatoire.\n`$aidecouleur` pour plus d'informations :wink:",
+            "sent": "Demande envoyée ! Vous serz contacté quand le changement sera effectif !"
+        },
+        "yourcolor": "Votre couleur est #"
+    },
+    "sending_msg": {
+        "file": {
+            "no_audio": "Vous ne pouvez pas envoyer le fichier audio ",
+            "no_file": "Vous ne pouvez pas envoyer le fichier ",
+            "end": " via le bot (reglage administrateur)"
+        },
+        "word_banned": "Il semblerait que tu utilises des mots interdits :thinking:\nVoici la liste des mots repérés: ",
+        "rec_crypted": "Message crypté reçu:",
+        "rec": "Message reçu:"
+    },
+    "help": {
+        "mp": "Envoie de l'aide par message privé",
+        "help": "__Aide__",
+        "footer": "Par Onion² pour ",
+        "note": {
+            "name": "__Note__",
+            "value": ":loudspeaker: Des suggestions ? Besoin d'aide ? Une version pour votre serveur ? Contactez onion#3562\n**$credit** pour plus d'informations"
+        },
+        "general": {
+            "description": "Bienvenue dans l'aide du bot Signal\n\n",
+            "msg": {
+                "name": "__Envoyer un message anonymement__",
+                "value": "Pour envoyer un message anonymement sur le channel <#%IDCHAN%>, envoyez un message privé au bot <@%IDCLIENT%>\nVotre message sera automatiquement brouillé"
+            },
+            "crypt": {
+                "name": "__Utiliser le cryptage__",
+                "value": "Pour crypter et décrypter un message avec un clef de chiffrement, tapez:\n```$crypt clef message\n$decrypt clef message_crypté```\nAvec **__clef__**: votre clef de chiffrement (mot de passe)\n:warning: Votre clef de cryptage ne doit pas contenir d'espace !\n:warning: Le code n'est pas incraquable, il s'agit d'un code vigenere adapté\nhttps://fr.wikipedia.org/wiki/Chiffre_de_Vigen%C3%A8re"
+            },
+            "chgtcouleur": {
+                "name": "__Modifier la couleur de son message__",
+                "value": "Pour obtenir de l'aide sur la couleur des message, tapez:\n```$aidecouleur```Pour simplement changer sa couleur, tapez:\n```$couleur```"
+            },
+            "del": {
+                "name": "__Supprimer le dernier message envoyé__",
+                "value": "Pour supprimer votre dernier message, tapez:\n```$del```"
+            },
+            "donate": {
+                "name": "Donation",
+                "value": "Signal est entierement gratuit, mais vous pouvez faire un don sur ce lien\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormément !"
+            },
+            "askchgtcouleur": {
+                "name": "__Demander un changement de couleur__",
+                "value": "Votre couleur ne vous plaît pas ? Demandez un changement de couleur aux administrateurs en tapant:\n```$demandechangementcouleur```"
+            }
+
+        },
+        "freq": {
+            "list": {
+                "name": "__Liste des fréquences radios__",
+                "public": "**Liste des frequences publiques:**",
+                "private": "**Liste des frequences privées:**"
+            },
+            "help": {
+                "title": "__Aide pour les fréquences radios__",
+                "decription": "Avant d'integrer une fréquence, vous devez être connecté à un channel vocal",
+                "gopublic": {
+                    "name": "Acceder à une fréquence publique:",
+                    "value": "`$freq` suivit du nom de la frequence"
+                },
+                "goprivate": {
+                    "name": "Acceder à une fréquence privée:",
+                    "value": "`$freq` suivit du nom de la frequence puis du mot de passe"
+                },
+                "list": {
+                    "name": "Obtenir la liste des fréquences disponibles:",
+                    "value": "`$listefreq`"
+                },
+                "on": {
+                    "name": "Se connecter à une fréquence aléatoire",
+                    "value": "`$freq on`"
+                },
+                "off": {
+                    "name": "Se déconnecter des fréquences",
+                    "value": "`$freq off`"
+                },
+                "next": {
+                    "name": "Aller sur la fréquence suivante:",
+                    "value": "`$freq +`"
+                },
+                "previous": {
+                    "name": "Aller sur la fréquence précédente:",
+                    "value": "`$freq -`"
+                },
+                "exemple": {
+                    "name": "Exemple:",
+                    "value": "Si vous souhaitez aller sur la fréquence sécurisée 34567.8 et que le mot de passe est \"voiture\", vous devez taper\n`$freq 34567.8 voiture`"
+                }
+            }
+        },
+        "color": {
+            "description": "Bienvenue dans l'aide couleur du bot Signal\nPour modifier la couleur des messages, il faut taper ```$couleur``` suivit du code hexadecimal de la couleur de ton choix\nExemple:```$couleur #ff33da```coloriera votre message en **rose**",
+            "getcode": {
+                "name": "Obtenir le code hexa d'une couleur",
+                "value": "https://htmlcolorcodes.com/fr/ , copiez le 1er nombre à droite (ex: #33f3ff)"
+            },
+            "knowcolor": {
+                "name": "Connaitre sa couleur",
+                "value": "Pour connaitre sa couleur, tapez ```$macouleur```"
+            },
+            "random": {
+                "name": "Couleur aléatoire",
+                "value": "Vous pouvez obtenir une couleur aléatoire en tapant simplement ```$couleur```"
+            }
+        }
+    }
+}
