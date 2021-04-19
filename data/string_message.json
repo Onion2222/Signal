@@ -1,7 +1,7 @@
 {
-    "accueil": "Bonjour, il semble qu'il s'agit de votre premiere utilisation de __signal__, n'oubliez pas de consulter l'aide ($help) et de configurer votre couleur de message avec $aidecouleur",
+    "accueil": "Bonjour, il semble qu'il s'agisse de votre première utilisation de __signal__, n'oubliez pas de consulter l'aide (`$help`)",
     "bloque": ":warning: Il semblerait que vous soyez bloqué par signal... Contactez un administrateur pour plus d'informations.",
-    "troplong": "Ton message est trop long (il fait plus de 1500 caracteres)\nDiscord limite la taille de mes message à 2000 caracteres, je vais donc l'envoyer en 2 parties pour éviter les problèmes avec le brouillage.",
+    "troplong": "Ton message est trop long (il fait plus de 1500 caracteres)\nDiscord limite la taille de mes message à 2000 caracteres, je vais donc l'envoyer en 2 parties pour éviter les problèmes.",
     "troplong_limiteadmin": "Ton message est trop long (il fait plus de %LIMITE% caractères), il ne sera donc pas envoyé.\nLe serveur qui héberge signal limite le nombre de caractères",
     "freq": {
         "notconnected": "Ooopsie ! Vous devez être sur un channel vocal pour être transféré ! :confused:",
@@ -18,7 +18,7 @@
     "keyshared": "Évite de taper ce genre de commande dans un channel textuel !\nLa prochaine fois, envoie la moi directement par mp...",
     "decrypt_error": "Il y a une erreur, tapez `$help` pour plus d'informations",
     "color": {
-        "noarg": "Pas d'argument, une couleur aléatoire vous est donc attribuée",
+        "noarg": "Pas d'argument, une couleur aléatoire vous a donc été attribuée",
         "wrongarg": "Erreur, argument incorrect... Se référer à `$help`",
         "result": "Couleur définie sur ",
         "previous": "Couleur précedente ",
