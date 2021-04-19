@@ -543,6 +543,7 @@ client.on('message', async msg => {
         }
 
         //test couleur
+        ligne[1] = ligne[1].replace('[', '').replace(']', '');
         let arg_couleur = ligne[1].split(" ").filter(function(i) { return i; }); //separer la ligne, couleur forcement à index 1 et le filtre enleve les elements vide dû aux ajouts d'espace apres
         //console.log(arg_couleur);
         if (arg_couleur.length != 2 | arg_couleur[0] != "Couleur:") {
