@@ -1,0 +1,45 @@
+{
+    "Audio_events": [{
+            "nom": "premier_test",
+            "filename": "test.mp3",
+            "CronPeriodText": "20 * * * * *",
+            "nbChan": 0,
+            "IDChans": ["1", "2", "3"]
+        },
+        {
+            "nom": "deuxieme_test",
+            "filename": "test2.mp3",
+            "CronPeriodText": "10 * * * * *",
+            "nbChan": 0,
+            "IDChans": ["1", "2", "3"]
+        },
+        {
+            "nom": "3_test",
+            "filename": "test3.mp3",
+            "CronPeriodText": "0 * * * * *",
+            "nbChan": 0,
+            "IDChans": ["1", "2", "3"]
+        },
+        {
+            "nom": "4_test",
+            "filename": "test4.mp3",
+            "CronPeriodText": "30 * * * * *",
+            "nbChan": 0,
+            "IDChans": ["1", "2", "3"]
+        },
+        {
+            "nom": "5_test",
+            "filename": "test5.mp3",
+            "CronPeriodText": "40 * * * * *",
+            "nbChan": 0,
+            "IDChans": ["1", "2", "3"]
+        },
+        {
+            "nom": "6_test",
+            "filename": "test6.mp3",
+            "CronPeriodText": "50 * * * * *",
+            "nbChan": 0,
+            "IDChans": ["1", "2", "3"]
+        }
+    ]
+}

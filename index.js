@@ -15,7 +15,12 @@ console.log("=====================================================");
 const Discord = require('discord.js');
 const mysql = require('mysql');
 const fs = require("fs");
+
+const { AudioEventsManager } = require('./lib/event_audio.js');
+let audioEventsMan = new AudioEventsManager('./data/event_audio.json');
+
 const { crypter, decrypter } = require('./lib/crypt.js');
+
 const { brouilleCouleurHex, alea_couleur, hexcolor_validator } = require('./lib/couleur.js');
 const { cleanup } = require('./lib/cleanup.js');
 const { maj, stopmaj, stopmaj_f, mise_en_route } = require('./lib/event.js');
