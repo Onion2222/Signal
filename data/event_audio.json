@@ -1,45 +1,38 @@
 {
-    "Audio_events": [{
-            "nom": "premier_test",
-            "filename": "test.mp3",
-            "CronPeriodText": "20 * * * * *",
-            "nbChan": 0,
-            "IDChans": ["1", "2", "3"]
-        },
-        {
-            "nom": "deuxieme_test",
-            "filename": "test2.mp3",
-            "CronPeriodText": "10 * * * * *",
-            "nbChan": 0,
-            "IDChans": ["1", "2", "3"]
-        },
-        {
-            "nom": "3_test",
-            "filename": "test3.mp3",
-            "CronPeriodText": "0 * * * * *",
-            "nbChan": 0,
-            "IDChans": ["1", "2", "3"]
-        },
-        {
-            "nom": "4_test",
-            "filename": "test4.mp3",
-            "CronPeriodText": "30 * * * * *",
-            "nbChan": 0,
-            "IDChans": ["1", "2", "3"]
-        },
-        {
-            "nom": "5_test",
-            "filename": "test5.mp3",
-            "CronPeriodText": "40 * * * * *",
-            "nbChan": 0,
-            "IDChans": ["1", "2", "3"]
-        },
-        {
-            "nom": "6_test",
-            "filename": "test6.mp3",
-            "CronPeriodText": "50 * * * * *",
-            "nbChan": 0,
-            "IDChans": ["1", "2", "3"]
-        }
-    ]
+  "Audio_events": [
+    {
+      "nom": "premier_test",
+      "actif": false,
+      "filename": "piste1.mp3",
+      "CronPeriodText": "30 * * * * *",
+      "nbChan": 2,
+      "IDChans": [
+        "822181704386871326",
+        "822182706715951164"
+      ]
+    },
+    {
+      "nom": "deuxieme_test",
+      "actif": false,
+      "filename": "piste1.mp3",
+      "CronPeriodText": "35 * * * * *",
+      "nbChan": 2,
+      "IDChans": [
+        "822181704386871326",
+        "822182706715951164"
+      ]
+    },
+    {
+      "nom": "test_entier",
+      "nbChan": 50,
+      "actif": true,
+      "CronPeriodText": "0 * * * * *",
+      "IDChans": [
+        "822181704386871326",
+        "822182676261634118",
+        "822182706715951164"
+      ],
+      "filename": "somebody_once.mp3"
+    }
+  ]
 }

@@ -15,16 +15,16 @@ console.log("=====================================================");
 const Discord = require('discord.js');
 const mysql = require('mysql');
 const fs = require("fs");
+const request = require(`request`);
 
 const { AudioEventsManager } = require('./lib/event_audio.js');
-let audioEventsMan = new AudioEventsManager('./data/event_audio.json');
 
 const { crypter, decrypter } = require('./lib/crypt.js');
 
 const { brouilleCouleurHex, alea_couleur, hexcolor_validator } = require('./lib/couleur.js');
 const { cleanup } = require('./lib/cleanup.js');
 const { maj, stopmaj, stopmaj_f, mise_en_route } = require('./lib/event.js');
-const { dateToStringReduit, random, randomTF, validator } = require('./lib/util.js');
+const { dif_log, get_usernames, random, randomTF, validator } = require('./lib/util.js');
 
 const config = require("./data/conf_bot.json");
 const string_message = require("./data/string_message.json");
@@ -43,8 +43,9 @@ const appel = "$";
 let Channel_log;
 let Channel_radio;
 let nom_serveur;
-let guild;
+let admin;
 
+let audioEventsMan;
 
 //sql
 const db = mysql.createConnection({
@@ -60,10 +61,10 @@ const db = mysql.createConnection({
 client.login(config.TOKEN);
 //debug
 client.on('debug', data_debug => {
-    if (config.debug) console.log(dateToStringReduit(new Date()) + data_debug);
+    if (config.debug) console.log(new Date() + "  " + data_debug);
 });
 //erreur
-client.on('error', err => dif_log("⚠️ Erreur !", "ERREUR client" + err[0]));
+client.on('error', err => dif_log_simple("⚠️ Erreur !", "ERREUR client" + err[0], "#FF300F"));
 
 //init du bot
 client.on('ready', () => {
@@ -73,57 +74,55 @@ client.on('ready', () => {
     console.log("=> Le bot Signal vient d'être lancé");
     console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.cache.size} channels:${client.channels.cache.size} serveur:${client.guilds.cache.size}`);
 
+    admin = client.users.cache.get(config.ID_admin); //erreur si trouve pas ??? A FAIRE
+    //acq chan log & radio
+    Channel_log = client.channels.cache.get(config.ID_log);
+    if (!Channel_log) { //si cannal log innaccessible
+        console.error("Channel " + config.ID_log + " non existant !\nIl n'y aura donc pas de log et d'acces aux commandes ADMIN");
+        console.log("Passage en mode debug admin");
+        config.MP_admin = true; //forçage MP ADMIN
+        dif_log("⚠️ MODE DEBUG ADMIN ⚠️", "Cannal de log innaccessible !", undefined, client.user.avatarURL(), "#0000FF", admin);
+    }
+
+    dif_log("⚠️ DEMARRAGE SIGNAL ⚠️", "Le bot vient de redemarrer.\nSi ce n'était pas prévu, contactez l'administrateur du bot !", Channel_log, client.user.avatarURL(), "#FF0000", admin);
+
     //application de la configuration
-    dif_log("⚠️ ETAT", "Reconfiguration de signal...");
+    dif_log("⚠️ ETAT", "Reconfiguration de signal...", Channel_log, client.user.avatarURL(), "#0000FF", admin);
     try {
         configuration = JSON.parse(fs.readFileSync('./data/conf_signal.json', 'utf8'));
-        dif_log("⚠️ ETAT", "Configuration précedente trouvée...");
+        dif_log("⚠️ ETAT", "Configuration précedente trouvée...", Channel_log, client.user.avatarURL(), "#00FF00", admin);
 
     } catch (e) {
-        dif_log("⚠️ Erreur !", "PARAMETRES INACCESSIBLE (voir terminal)\n Contactez Onion ! @everyone");
+        dif_log("⚠️ ETAT", "__PARAMETRES INACCESSIBLE__ (voir terminal)\n Contactez Onion ! @everyone\nLe bot se termine sur une erreur...", Channel_log, client.user.avatarURL(), "#FF0000", admin);
         console.error(e);
         process.exit(0);
     }
 
-    guild = client.guilds.cache.get(config.ID_serveur);
-    nom_serveur = guild.name;
 
-    //acq chan log & radio
-    Channel_log = client.channels.cache.get(config.ID_log);
-    if (!Channel_log) console.error("Channel " + config.ID_log + " non existant !\n Il n'y aura donc pas de log et d'acces aux commandes ADMIN");
+    audioEventsMan = new AudioEventsManager('./data/event_audio.json', client);
 
-    dif_log("⚠️ DEMARRAGE SIGNAL ⚠️", "Le bot vient de redemarrer.\nSi ce n'était pas prévu, contactez l'administrateur du bot !");
 
+    nom_serveur = client.guilds.cache.get(config.ID_serveur).name;
+
+
+    //connexion SQL
     db.connect(function(err) {
         if (err) {
-            dif_log("mySQL", "⚠️⚠️ Connection au server MySQL " + config.Serveur_SQL.host + " impossible !!⚠️⚠️");
+            dif_log("⚠️ ETAT", "⚠️⚠️ Connection au server MySQL " + config.Serveur_SQL.host + " impossible !!⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
             console.log(err);
-        } else dif_log("mySQL", "Connection au server MySQL " + config.Serveur_SQL.host + " réussie");
+        } else dif_log("⚠️ ETAT", "Connection au server MySQL " + config.Serveur_SQL.host + " réussie", Channel_log, client.user.avatarURL(), "#00FF00", admin);
     });
 
-    // A FAIRE
-    /*
-    dif_log("Configuration:" +
-        "\nNiveau brouillage: " + configuration.brouillage_caractere.toString() +
-        "\nNiveau brouillage espace: " + configuration.brouillage_espace +
-        "\nColoration: " + configuration.coloration.toString() +
-        "\nAnonymisation: " + configuration.anonyme.toString() +
-        "\nCryptage: " + configuration.cryptage.toString() +
-        "\nActif: " + configuration.actif.toString() +
-        "\nTaille maximum des messages: " + configuration.taille_max_msg.toString() +
-        "\nID serveur: " + config.ID_serveur +
-        "\nID channel:" +
-        "\nLog: " + config.ID_log +
-        "\nRadio: " + config.ID_radio
-    );*/
 
+    //recuperation chan radio
     Channel_radio = client.channels.cache.get(config.ID_radio);
-    if (!Channel_radio) {
-        console.error("Channel " + config.ID_radio + " non existant !\n Il n'y a pas de channel radio, signal va donc se terminer...");
+    if (!Channel_radio) { //si pas de chan radio
+        console.error("Channel " + config.ID_radio + " non existant !\nIl n'y a pas de channel radio, signal va donc se terminer...");
+        dif_log("⚠️ ETAT", "⚠️⚠️ Channel radio inaccessible, signal va donc se terminer ⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
         process.exit(0);
     }
 
-    //en cas de crash
+    //en cas de crash nettoyer les messages
     cleanup(Channel_radio, parseInt(configuration.duree_messsage));
 
     //Simulation d'écriture relancer toutes les heures sinon beug
@@ -132,6 +131,8 @@ client.on('ready', () => {
     } catch (error) {
         Error(81, error);
     }
+
+    //typing toutes les heures
     setInterval(function() {
         try {
             Channel_radio.startTyping();
@@ -142,6 +143,11 @@ client.on('ready', () => {
 
 });
 
+
+function dif_log_simple(titre, texte, couleur) {
+    if (!config.MP_admin) dif_log(titre, texte, Channel_log, client.user.avatarURL(), couleur);
+    else dif_log(titre, texte, Channel_log, client.user.avatarURL(), couleur, admin);
+}
 
 
 
@@ -168,7 +174,7 @@ client.on('message', async msg => {
     if (member.roles.size <= 1 & msg.author.id !== config.ID_admin) { //permission @everyone ou nulle ET pas channel candidature et pas admin => alerte modo
         let log = "\nIntrusion du systeme signal par une personne non autorisée\n";
         log += "Auteur:" + msg.author.username + "\nChannel:" + msg.channel.name + "\nContenu:" + msg.cleanContent;
-        dif_log("⚠️ Intrusion !", log);
+        dif_log_simple("⚠️ Intrusion !", log, "#e000ff");
         return;
     }
 
@@ -183,7 +189,7 @@ client.on('message', async msg => {
 
     //si l'utilisateur n'existe pas, le créer
     if (utilisateur == undefined) {
-        dif_log("Nouvel utilisateur", "Utilisateur : " + msg.author.username);
+        dif_log_simple("Nouvel utilisateur", "Utilisateur : " + msg.author.username, "#00FF00");
 
         utilisateur = {};
         utilisateur.ID = msg.author.id;
@@ -202,7 +208,7 @@ client.on('message', async msg => {
     } else {
         if (utilisateur.bloque & msg.author.id != config.ID_admin) {
             msg.author.send(string_message.bloque); //message bloqué
-            dif_log("Utilisateur banni !", msg.author.username + " a tenté d'envoyer:\n`" + msg.content + "`");
+            dif_log_simple("Utilisateur banni !", get_usernames(member, true) + " a tenté d'envoyer:\n`" + msg.content + "`", "#9e0101");
             return;
         }
     }
@@ -302,7 +308,7 @@ client.on('message', async msg => {
         msg.react("✅");
         member.edit({ channel: freq_togo.ID });
         //log
-        dif_log("🔊 Acces Vocal", member.nickname + " | " + msg.author.username + " vient d'acceder au channel " + freq_togo.nom);
+        dif_log_simple("🔊 Acces Vocal", get_usernames(member, false) + " vient d'acceder au channel " + freq_togo.nom, "00ecff");
         return;
     }
 
@@ -326,13 +332,13 @@ client.on('message', async msg => {
     }*/
 
     if (command === "ping") {
-        dif_log("Ping", "Utilisateur : " + msg.author.username);
+        dif_log_simple("Ping", "Utilisateur : " + get_usernames(member, false), "#000000");
         msg.reply(string_message.ping);
         return;
     }
 
     if (command === "help" | command === "aide") {
-        dif_log("Demande d'aide", "Utilisateur : " + msg.author.username);
+        dif_log_simple("Demande d'aide", "Utilisateur : " + get_usernames(member, true), "#00ff55");
         //https://paypal.me/pools/c/8mowOxex8i
         embed_aide(msg.author);
 
@@ -349,7 +355,7 @@ client.on('message', async msg => {
     }
 
     if (command === "aidecouleur") {
-        dif_log("Demande d'aide couleur", "Utilisateur : " + msg.author.username);
+        dif_log_simple("Demande d'aide couleur", "Utilisateur : " + get_usernames(member, true), "#00ff55");
 
         let embed = new Discord.MessageEmbed();
         embed.setTitle("__**SIGNAL**__");
@@ -413,7 +419,7 @@ client.on('message', async msg => {
         Channel_radio.messages.fetch(utilisateur.DERMSG).then(message_sup => {
             message_sup.delete();
 
-            dif_log("Supression", "=>Suppression demandée du dernier message de " + msg.author.username);
+            dif_log_simple("Supression", "=>Suppression demandée du dernier message de " + get_usernames(member, true), "#ff0061");
 
             msg.author.send(string_message.deleted);
             if (msg.channel.type === "dm") {
@@ -439,7 +445,7 @@ client.on('message', async msg => {
             //console.log(content);
             Send_Message(msg, content, utilisateur, member, true, clef);
         } else {
-            dif_log("Cryptage bloqué", "Utilisateur : " + msg.author.username);
+            dif_log_simple("Cryptage bloqué", "Utilisateur : " + get_usernames(member, false), "#d1ff00");
             msg.author.send(string_message.blockcrypt.replace("%NAMESERV%", nom_serveur).replace("%MSG%", msg.cleanContent)); //"Le cryptage est actuellement interdit sur le canal transmission. (voir avec les administrateurs de " + nom_serveur + ")\n```" + msg.cleanContent + "```"
         }
         return;
@@ -454,7 +460,7 @@ client.on('message', async msg => {
             //console.log(new_text);
             //new_text = decrypter(new_text, CLEF_PROG);
 
-            dif_log("Décryptage", "Tentative de decryptage de " + msg.author.username + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text);
+            dif_log_simple("Décryptage", "Tentative de decryptage de " + get_usernames(member, false) + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text, "#d1ff00");
 
             msg.author.send("Message décodé 🔐 :\n" + "```" + new_text + "```");
             if (msg.channel.type !== "text") {
@@ -473,7 +479,7 @@ client.on('message', async msg => {
 
     if (command === 'couleur') {
         //#a85a32
-        dif_log("Couleur", "Changement de couleur demandé par l'utilisateur " + msg.author.username + "\nMessage: `" + msg.content + "`");
+        dif_log_simple("Couleur", "Changement de couleur demandé par l'utilisateur " + get_usernames(member, true) + "\nMessage: `" + msg.content + "`", "#4dff00");
         if (configuration.changement_couleur) {
             if (args[0] == undefined) {
                 msg.author.send(string_message.color.noarg);
@@ -504,7 +510,7 @@ client.on('message', async msg => {
             query_db("UPDATE users SET COULEUR = \"" + utilisateur.COULEUR + "\" WHERE ID=\"" + msg.author.id + "\"");
             return;
         } else {
-            dif_log("Couleur", "Demande changement de couleur bloqué !");
+            dif_log_simple("Couleur", "Demande changement de couleur bloqué !", "#4dff00");
             msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
@@ -516,13 +522,13 @@ client.on('message', async msg => {
 
         let ligne = msg.content.split("\n");
         if (ligne.length == 1) {
-            dif_log("Couleur", "Demande aide formulaire couleur");
+            dif_log_simple("Couleur", "Demande aide formulaire couleur", "#4dff00");
             msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
         }
 
-        dif_log("Couleur", "Demande changment de couleur\nFormulaire:\n" + msg.cleanContent);
+        dif_log_simple("Couleur", "Demande changment de couleur\nFormulaire:\n" + msg.cleanContent, "#4dff00");
         //si nombre de ligne ok
         if (ligne.length < 3) {
             msg.react("❌");
@@ -563,19 +569,19 @@ client.on('message', async msg => {
 
 
         let embed = new Discord.MessageEmbed().setColor("#86F67E").setTitle(`Demande de changement de couleur`);
-        embed.setDescription(`L'utilisateur **${msg.author.tag}** \\ **${member.nickname}** demande un changement de couleur`);
-        embed.addField(`Motivation:`, `\`\`\`${ligne[2].slice(11)}\`\`\``);
+        embed.setDescription(`L'utilisateur **${get_usernames(member, true)}** demande un changement de couleur`);
+        embed.addField(`Motivation:`, `\`\`\`${ligne[2].slice(11).trim()}\`\`\``);
         embed.addField(`Couleur voulue:`, `\`\`\`${arg_couleur[1]}\`\`\``); //bien couper ou il y a la couleur
         embed.addField(`Commande pour valider ce changement:`, `\`\`\`$validechgtcouleur ${msg.author.id} ${arg_couleur[1]}\`\`\``);
-        Channel_log.send(embed);
-
+        if (Channel_log) Channel_log.send({ content: "@here", embed: embed });
+        else admin.send({ content: "@here", embed: embed });
         msg.react("✅");
         msg.author.send(string_message.color.askchgt.sent);
         return;
     }
 
     if (command === 'macouleur') {
-        dif_log("Couleur", "Interrogation couleur par l'utilisateur " + msg.author.username);
+        dif_log_simple("Couleur", "Interrogation couleur par l'utilisateur " + get_usernames(member, false), "#4dff00");
         let embed = new Discord.MessageEmbed().setColor(utilisateur.COULEUR)
             .setTitle(string_message.color.yourcolor + utilisateur.COULEUR);
         msg.author.send(embed);
@@ -583,7 +589,7 @@ client.on('message', async msg => {
     }
 
     if (command == "credit") {
-        dif_log("Crédit", "Demande credit par l'utilisateur " + msg.author.username);
+        dif_log_simple("Crédit", "Demande credit par l'utilisateur " + get_usernames(member, true), "#3b2e2e");
         let embed_credit = new Discord.MessageEmbed()
             .setColor(16312092)
             .setTimestamp()
@@ -610,7 +616,6 @@ client.on('message', async msg => {
                 .addField("$coloration", "Impose les Jaune ou laisse les couleurs personnalisées")
                 .addField("$fichier", "Active/desactive l'envoie de fichier (hors audio)")
                 .addField("$audio", "Active/desactive l'envoie de fichier audio")
-                .addField("$difhelp", "Diffuse l'aide sur le canal radio")
                 .addField("$cleanup", "Supprime ou re-ordonne la supression future des messages qui n'ont pas été supprimé dans les temps")
                 .addField("$admin", "Permet de diffuser un message d'administrateur")
                 .addField("$setbrouillage X >BLABLA image", "Modifie le brouillage\nX: X% de carracteres brouillés (defaut: 0, pas de brouillage)\n BLABLA: raison du brouillage (optionnel)\nimage: petite image (optionnel)\nDifferents niveaux: [;25[,[25;15[,[15;7[,[7;1]")
@@ -625,6 +630,7 @@ client.on('message', async msg => {
                 .addField("$addfreq nom ID", "Ajoute une frequence publique")
                 .addField("$delfreq nom (ou ID)", "Supprime la frequence")
                 .addField("$changemdpfreq nom (ou ID) mdp", "Change le mdp de la frequence privée")
+                .addField("$difhelp ID", "Envoie l'aide sur le channel correspondant à l'ID")
                 .addField("$difhelpfreq ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
                 .addField("$evalSQL", "Evalue une commande SQL :warning: NE PAS UTILISER SI VOUS N'ETES PAS SUR !!!")
                 .addField("$chgtcouleur", "Active ou désactive le changement de couleur libre")
@@ -818,13 +824,15 @@ client.on('message', async msg => {
         if (command == "difhelp") {
             /*Channel_radio = client.channels.get(config.ID_radio); //test: 597466263144366140
             if (!Channel)_radio return console.error("Channel " + ID + " non existant !");*/
-            embed_aide(Channel_radio);
+            chann = client.channels.cache.get(args[0]); //test: 597466263144366140
+            if (!chann) return console.error("Channel " + ID + " non existant !");
+            embed_aide(chann);
             msg.react("✅");
             return;
         }
 
         if (command == "difhelpfreq") {
-            chann = client.channels.get(args[0]); //test: 597466263144366140
+            chann = client.channels.cache.get(args[0]); //test: 597466263144366140
             if (!chann) return console.error("Channel " + ID + " non existant !");
             send_aide_freq(chann);
             send_liste_freq(chann);
@@ -1090,6 +1098,95 @@ client.on('message', async msg => {
             }
 
         }
+
+        //gestion event audio
+        /*  format event
+        {
+            "nom": "premier_test",
+            "filename": "piste1.mp3",
+            "actif":false
+            "CronPeriodText": "35 * * * * *",
+            "nbChan": 2,
+            "IDChans": ["822181704386871326", "822182706715951164"]
+        }
+        */
+        if (command == "addaudioevent") { //$addaudioevent nom nb_chan_dif all/freq1,freq2,freq42 [* * * * * *]    =>+fichier joint
+
+            let new_event = {
+                nom: args[0],
+                nbChan: parseInt(args[1]),
+                actif: false,
+                CronPeriodText: msg.content.match(/\[(.*?)\]/)[1] //.replace('[', '').replace(']', '')
+            };
+
+            let array_chan = [];
+
+            if (args[2] == "all") {
+                configuration.frequence.freq.forEach((frequence) => {
+                    array_chan.push(frequence.ID);
+                });
+            } else {
+                let nomchans = args[2].split(',');
+                let liste_chan = configuration.frequence.freq.filter(frequence =>
+                    (nomchans.indexOf(frequence.nom) != -1 | nomchans.indexOf(frequence.ID) != -1) //filtrer => uniquement les freq avec un nom ou id dans l'argument
+                );
+                liste_chan.forEach((frequence) => {
+                    array_chan.push(frequence.ID);
+                });
+            }
+
+            new_event.IDChans = array_chan;
+
+            //GESTION FICHIER 
+            //console.log(msg.attachments);
+            if (msg.attachments.first()) { //checks if an attachment is sent
+                let file = msg.attachments.first();
+                console.log(file);
+                if (file.name.indexOf(`mp3`)) { //Download only mp3 
+                    download(file.url, './ressources/' + file.name); //Function I will show later
+                    new_event.filename = file.name;
+                    audioEventsMan.add(new_event, true);
+                }
+            }
+
+
+            return;
+        }
+
+        if (command == "listaudioevent") {
+            let liste = audioEventsMan.list();
+            msg.channel.send("Liste des events audio:");
+            for (let index = 0; index < liste.length; index++) {
+                msg.channel.send(`Nom: **${liste[index].nom}** - actif: **${liste[index].cron.running}**`);
+
+            }
+            return;
+        }
+
+        //fusion avec liste ?
+        if (command == "infoaudioevent") { //a faire meilleur affichage
+            let info = audioEventsMan.info(args[0]);
+            if (info == 1 | info == 2) msg.channel.send(`Erreur ${info} !`); //a faire meilleur traitement
+            console.log(info);
+            msg.channel.send(`Nom: ${info[0].nom}\nActivité: ${info[0].cron.running} | ${info[1].actif}\nFichier:  ${info[1].filename}\nCron:  ${info[1].CronPeriodText}\nnbChan:  ${info[1].nbChan}\nIDChans: ${info[1].IDChans}`);
+            return;
+        }
+
+        if (command == "startaudioevent") { //a faire gestion errreur
+            let err = audioEventsMan.start(args[0]);
+            return;
+        }
+        if (command == "stopaudioevent") { //a faire gestion errreur
+            let err = audioEventsMan.stop(args[0]);
+            return;
+        }
+        if (command == "delaudioevent") { //a faire gestion errreur
+            let err = audioEventsMan.delete(args[0]);
+            return;
+        }
+
+
+
         fs.writeFileSync('./data/conf_signal.json', JSON.stringify(configuration, null, 2)); //sauvegarde des modifications
 
     } //fin ID LOG
@@ -1169,39 +1266,7 @@ function brouiller(text, niveau_espace, niveau_caractere) {
 
 
 
-async function dif_log(titre, log_txt) {
-    //log sur console
 
-    let now = new Date();
-    let embed_signal = new Discord.MessageEmbed()
-        .setTimestamp()
-        .setColor("#000000")
-        .setAuthor(titre, client.user.avatarURL());
-
-
-    embed_signal.setDescription(log_txt);
-    /*if(!url) embed_signal.setDescription(log_txt);
-    else embed_signal.setDescription(log_txt+"[Lien]("+url+")");*/
-
-    embed_signal.setFooter("LOG");
-
-    log_txt = "[" + now.getDate() + "/" + (now.getMonth() + 1) + "/" + now.getFullYear() + ";" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds() + "]:" + titre + " - " + log_txt;
-
-    console.log(log_txt);
-
-    //log dans fichier (fonction pour suppr ?)
-    /*
-    fs.appendFile("signal.log", log_txt, function(err) {
-        if (err) return console.log(err);
-        //console.log("*"); //Log enregistre*\n");
-    });*/
-
-    if (config.MP_admin) client.users.cache.get(config.ID_admin).send(embed_signal);
-
-    //log dans chan
-    if (Channel_log != undefined) Channel_log.send(embed_signal);
-
-}
 
 
 
@@ -1214,7 +1279,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
     if (msg.channel.type == "text") log_titre += " (" + msg.channel.name + ")";
     else log_titre += " (MP)";
 
-    let log = "Message de <@" + msg.author.id + ">:\n`" + content + " `" + "\n";
+    let log = "Message de " + get_usernames(member, true) + ":\n`" + content + " `" + "\n";
 
     //envoie des fichiers:
 
@@ -1256,7 +1321,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
 
     if (mot_interdits.length != 0) {
         msg.author.send(string_message.sending_msg.word_banned + mot_interdits.toString());
-        dif_log(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```");
+        dif_log_simple(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```", "#e82020");
         return;
     }
 
@@ -1306,13 +1371,13 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
             embed_signal.setDescription(new_text)
                 .setTitle(string_message.sending_msg.rec);
         }
-        Channel_radio.send(embed_signal, "", { files: listeFichier }).then(sent => CallBack_Message(sent, msg, utilisateur, log_titre, log)).catch(err => Error(1, err));
+        Channel_radio.send(embed_signal, "", { files: listeFichier }).then(sent => CallBack_Message(sent, msg, utilisateur, member, log_titre, log)).catch(err => Error(1, err));
     } else {
-        Channel_radio.send({ files: listeFichier }).then(sent => CallBack_Message(sent, msg, utilisateur, log_titre, log)).catch(err => Error(2, err));
+        Channel_radio.send({ files: listeFichier }).then(sent => CallBack_Message(sent, msg, utilisateur, member, log_titre, log)).catch(err => Error(2, err));
     }
 }
 
-function CallBack_Message(sent, msg, utilisateur, log_titre, log) { // 'sent' est le message envoyé
+function CallBack_Message(sent, msg, utilisateur, member, log_titre, log) { // 'sent' est le message envoyé
     if (msg.channel.type != "text") msg.react("📤").catch(err => Error(3, err));
     let id = sent.id;
     sent.delete({ timeout: configuration.duree_messsage }).catch(err => Error(4, err));
@@ -1323,11 +1388,11 @@ function CallBack_Message(sent, msg, utilisateur, log_titre, log) { // 'sent' es
     //mysql:
     let isoDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
     query_db("UPDATE users SET DERMSG = " + utilisateur.DERMSG + ", nb_msg = nb_msg+1, date_dermsg=\"" + isoDate + "\" WHERE ID=\"" + msg.author.id + "\"");
-    dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID: " + utilisateur.ID + "`"); //log
+    dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID_utilisateur: " + utilisateur.ID + "`", Channel_log, member.user.avatarURL(), "#000000", config.MP_admin, false); //log
 }
 
 function Error(num, err) {
-    dif_log("⚠️ Erreur !", "Erreur n°" + num.toString() + "\n" + err);
+    dif_log_simple("⚠️ Erreur !", "Erreur n°" + num.toString() + "\n" + err, "#FF300F");
 }
 
 //json
@@ -1426,10 +1491,19 @@ function query_db(query) {
         db.query(query, (error, results) => {
             if (error) {
                 console.log(error);
-                dif_log("Erreur SQL", "Requête: `" + query + "`\nErreur: `" + error + "`");
+                dif_log_simple("Erreur SQL", "Requête: `" + query + "`\nErreur: `" + error + "`", "#FF100F");
                 return reject(error);
             }
             return resolve(results);
         });
     });
+}
+
+
+
+
+function download(url, path) {
+    request.get(url)
+        .on('error', console.error)
+        .pipe(fs.createWriteStream(path));
 }

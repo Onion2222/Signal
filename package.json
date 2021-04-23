@@ -4,9 +4,11 @@
     "description": "Signal",
     "main": "index.js",
     "dependencies": {
+        "@discordjs/opus": "^0.5.0",
         "cron": "^1.8.2",
         "discord.js": "12.5.3",
-        "mysql": "^2.18.1"
+        "mysql": "^2.18.1",
+        "sodium": "^3.0.2"
     },
     "author": "Onion",
     "license": "CC-BY-NC-ND-4.0"
