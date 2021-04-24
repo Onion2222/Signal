@@ -22,7 +22,7 @@
         "wrongarg": "Erreur, argument incorrect... Se référer à `$help`",
         "result": "Couleur définie sur ",
         "previous": "Couleur précedente ",
-        "blocked": "Le changement de couleur est interdit sans motivation valide.\nPour faire une demande de changement de couleur merci de copier/coller ce formulaire, le remplir en remplaçant ce qui est écrit entre crochets et me l'envoyer. Il sera ensuite soumis aux administrateurs pour validation.",
+        "blocked": "Le changement de couleur est interdit sans motivation valide.\nPour faire une demande de changement de couleur merci de copier/coller ce formulaire, le remplir en remplaçant ce qui est écrit entre crochets et __l'envoyer au bot__. Il sera ensuite soumis aux administrateurs pour validation.",
         "askchgt": {
             "wrongformat": "Merci de respecter le format imposé. :wink:",
             "toshort": "Vos motivations sont beaucoup trop courtes ! Essayez d'en écrire plus pour être sûr que les administrateurs valident votre changement de couleur. :wink:",
