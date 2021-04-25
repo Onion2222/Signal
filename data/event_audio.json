@@ -1,8 +1,8 @@
 {
     "Audio_events": [{
             "nom": "premier_test",
-            "actif": false,
-            "filename": "piste1.mp3",
+            "actif": true,
+            "filename": "coin.mp3",
             "CronPeriodText": "30 * * * * *",
             "nbChan": 2,
             "IDChans": [
@@ -12,17 +12,17 @@
             "nb_event": 500
         },
         {
-            "nom": "test_entier",
-            "nbChan": 50,
+            "nom": "test_all_cron2",
             "actif": false,
-            "CronPeriodText": "50 * * * * *",
             "IDChans": [
                 "822181704386871326",
                 "822182676261634118",
-                "822182706715951164"
+                "822182706715951164",
+                "825014405841551380"
             ],
-            "filename": "somebody_once.mp3",
-            "nb_event": -1
+            "nbChan": 1,
+            "CronPeriodText": "*/2 * * * *",
+            "filename": "coin.mp3"
         }
     ]
 }

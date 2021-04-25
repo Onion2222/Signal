@@ -16,6 +16,7 @@ const Discord = require('discord.js');
 const mysql = require('mysql');
 const fs = require("fs");
 const request = require(`request`);
+const cron_validator = require('cron-validator');
 
 const { AudioEventsManager } = require('./lib/event_audio.js');
 
@@ -24,7 +25,7 @@ const { crypter, decrypter } = require('./lib/crypt.js');
 const { brouilleCouleurHex, alea_couleur, hexcolor_validator } = require('./lib/couleur.js');
 const { cleanup } = require('./lib/cleanup.js');
 const { maj, stopmaj, stopmaj_f, mise_en_route } = require('./lib/event.js');
-const { dif_log, get_usernames, random, randomTF, validator } = require('./lib/util.js');
+const { dif_log, get_corres_listeID_nom, get_usernames, random, randomTF, validator } = require('./lib/util.js');
 
 const config = require("./data/conf_bot.json");
 const string_message = require("./data/string_message.json");
@@ -48,7 +49,7 @@ let admin;
 let audioEventsMan;
 
 //sql
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: config.Serveur_SQL.host,
     user: config.Serveur_SQL.user,
     password: config.Serveur_SQL.password,
@@ -90,7 +91,7 @@ client.on('ready', () => {
     dif_log("⚠️ ETAT", "Reconfiguration de signal...", Channel_log, client.user.avatarURL(), "#0000FF", admin);
     try {
         configuration = JSON.parse(fs.readFileSync('./data/conf_signal.json', 'utf8'));
-        dif_log("⚠️ ETAT", "Configuration précedente trouvée...", Channel_log, client.user.avatarURL(), "#00FF00", admin);
+        dif_log("⚠️ ETAT", "Configuration précedente trouvée !", Channel_log, client.user.avatarURL(), "#00FF00", admin);
 
     } catch (e) {
         dif_log("⚠️ ETAT", "__PARAMETRES INACCESSIBLE__ (voir terminal)\n Contactez Onion ! @everyone\nLe bot se termine sur une erreur...", Channel_log, client.user.avatarURL(), "#FF0000", admin);
@@ -98,15 +99,15 @@ client.on('ready', () => {
         process.exit(0);
     }
 
-
-    audioEventsMan = new AudioEventsManager('./data/event_audio.json', client);
+    //demarrage audioevents
+    audioEventsMan = new AudioEventsManager('./data/event_audio.json', client, Channel_log);
 
 
     nom_serveur = client.guilds.cache.get(config.ID_serveur).name;
 
 
     //connexion SQL
-    db.connect(function(err) {
+    db.getConnection(function(err) {
         if (err) {
             dif_log("⚠️ ETAT", "⚠️⚠️ Connection au server MySQL " + config.Serveur_SQL.host + " impossible !!⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
             console.log(err);
@@ -155,6 +156,7 @@ function dif_log_simple(titre, texte, couleur) {
 //quand le bot voit un message
 client.on('message', async msg => {
 
+
     if (msg.author.bot) return; //si bot 
     if (msg.type !== 'DEFAULT') return; // si pas message "normal"
 
@@ -185,6 +187,7 @@ client.on('message', async msg => {
     //let utilisateur = liste_utilisateur.Utilisateurs.find(user => user.ID === msg.author.id); //trouver l'utilisateur qui à ce role
     //mysql
     let result_query = await query_db("SELECT * FROM users WHERE  ID=\"" + msg.author.id + "\"");
+
     let utilisateur = result_query[0];
 
     //si l'utilisateur n'existe pas, le créer
@@ -215,6 +218,7 @@ client.on('message', async msg => {
 
 
 
+
     //envoie message RP
     if (msg.content.indexOf(appel) !== 0) { //si ne commence pas par le caractere d'appel
 
@@ -237,6 +241,8 @@ client.on('message', async msg => {
         }
         return;
     }
+
+
 
 
     //mise en ordre des arguments/commande
@@ -1103,20 +1109,29 @@ client.on('message', async msg => {
 
         if (command == "audioevent") {
             if (!args[0]) {
-                msg.channel.send("__AIDE AUDIOEVENT__\n`$audioevent` + commande\n**COMMANDES:**");
+                let embed_Aide_eventAudio = new Discord.MessageEmbed()
+                    .setColor("#8630F3")
+                    .setTimestamp()
+                    .setTitle("AIDE AUDIOEVENT")
+                    .setDescription("`$audioevent` + commande\n**COMMANDES:**")
+                    .addField("`add`", "Ajout d'un event audio, remplir ce formulaire en conservant les crochets et l'envoyer sur ce cannal:" +
+                        "```$audioevent add\n" +
+                        "NOM:[nom] \n" +
+                        "ACTIF[OUI/NON]\n" +
+                        "IDCHAN:[nom/id des canneaux à se connecter, séparés par une virgule ou ALL]\n" +
+                        "NBCHAN:[nombre de chan (-1;1024 / ALL)]\n" +
+                        "CRON:[voir https://crontab.guru/ et https://cronjob.xyz/]\n" +
+                        "AUDIO:[vide si audio joint au message/nom du fichier]\n" +
+                        "```")
+                    .addField("`list`", "Donne la liste des events audio et leur état")
+                    .addField("`info`", "nom de l'event audio - Donne beaucoup plus d'infos sur l'event audio")
+                    .addField("`start` + nom de l'event audio", "Demarre l'event audio")
+                    .addField("`stop` + nom de l'event audio", "Arrete l'event audio")
+                    .addField("`del` + nom de l'event audio", "Supprime l'event audio")
+                    .addField("`plan` + nom de l'event audio", "Donne les 30 prochaines diffusions");
+                msg.channel.send(embed_Aide_eventAudio);
+                return;
 
-                msg.channel.send("`add` - Ajout d'un event audio, remplir ce formulaire en conservant les crochets et l'envoyer sur ce cannal:");
-                msg.channel.send("```$audioevent add\n" +
-                    "NOM:[nom] \n" +
-                    "ACTIF[OUI/NON]\n" +
-                    "IDCHAN:[nom/id des canneaux à se connecter, séparés par une virgule ou ALL]\n" +
-                    "NBCHAN:[nombre de chan (-1;1024 / ALL)]\n" +
-                    "ARGUMENT_PLAN:[x/* x/* x/* x/* x/* x/*]\n" +
-                    "AUDIO:[vide si audio joint au message/nom du fichier]\n" +
-                    "```");
-
-                msg.channel.send("`list` - Donne la liste des events audio et leur état");
-                msg.channel.send("`info` + nom de l'event audio - Donne beaucoup plus d'infos sur l'event audio");
 
             }
 
@@ -1211,25 +1226,32 @@ client.on('message', async msg => {
 
                 //PLANIFICATION
                 let arg_plan = lines_param[5].match(/\[(.*?)\]/)[1].trim();
+                if (!cron_validator.isValidCron(arg_plan, { seconds: false })) {
+                    msg.channel.send("Erreur CRON INVALIDE !");
+                    return;
+                }
                 log += "**CRON:" + arg_plan.toString() + "** | ";
                 new_event.CronPeriodText = arg_plan;
                 //FIN PLAN
 
                 //AUDIO
                 let fichier_audio = lines_param[6].match(/\[(.*?)\]/)[1].trim();
-                if (fichier_audio.length == 0) {
+                if (fichier_audio.length == 0) { //si vide alors check fichier en attachement
                     //GESTION FICHIER 
                     //console.log(msg.attachments);
                     if (msg.attachments.first()) { //checks if an attachment is sent
                         let file = msg.attachments.first();
-                        if (file.name.indexOf(`mp3`)) { //Download only mp3 
+                        if (file.name.indexOf(`mp3`) == file.name.length - 3) { //Download only mp3 
                             download(file.url, './ressources/' + file.name); //Function I will show later
                             new_event.filename = file.name;
                             log += "FICHIER:**" + file.name + "** | ";
                         }
+                    } else {
+                        msg.channel.send("Erreur FICHIER INVALIDE !");
+                        return;
                     }
                 } else {
-                    console.log(fichier_audio);
+
                     //check si fichier existe
                     if (fs.existsSync('./ressources/' + fichier_audio)) {
                         log += "FICHIER:**" + fichier_audio + "** | ";
@@ -1259,22 +1281,7 @@ client.on('message', async msg => {
                     //msg.channel.send(`Nom: **${liste[index].nom}** - actif: **${liste[index].cron.running}**`);
                     info += '\n';
                     if (liste[index].cron) {
-
-                        switch (liste[index].cron.running) {
-                            case undefined: //pas demarré
-                            case false: //stoppé
-                                info += `🔴`;
-                                break;
-                            case true: //actif
-                                info += `🟢`;
-                                break;
-                            default: //erreur
-                                info += `⚠️`;
-                                break;
-                        }
-                        info += ` [\`CRON \`]`;
-
-
+                        info += audioEventsMan.getStateEmoji(liste[index].nom);
                     } else {
                         info += `>ERREUR<`;
                     }
@@ -1289,23 +1296,64 @@ client.on('message', async msg => {
             if (args[0] == "info") { //a faire meilleur affichage
                 let info = audioEventsMan.info(args[1]); //redonne [0] l'objet audioevent & [1] la donnée enregistrée | 1 si pas objet, 2 si pas enregistré
 
-                console.log(info);
+                if (info != 1 & info != 2) {
+                    let info_st = "";
 
+                    info_st += `**NOM**\t\`${info[0].nom}\`\t${audioEventsMan.getStateEmoji(info[0].nom)}\n` +
+                        `**CHAN**\n\`${get_corres_listeID_nom(info[1].IDChans).toString().replace(/,/g,'\n').trim()}\`\n` +
+                        `**NbChans**\t\`${info[1].nbChan}\`\n` +
+                        `**CRON**\t\`${info[1].CronPeriodText}\`\n` +
+                        `**FICHIER**\t\`${info[1].filename}\`\n` +
+                        `**INFO CRON**\n` +
+                        `*Derniere execution*\t\`${audioEventsMan.getLast(info[0].nom)}\`\n` +
+                        `*Prochaine execution*\t\`${audioEventsMan.getNext(info[0].nom)}\`\n`;
+
+                    msg.channel.send(info_st);
+                } else {
+                    msg.react("❌");
+                }
                 return;
             }
-            /*
-            if (command == "startaudioevent") { //a faire gestion errreur
-                let err = audioEventsMan.start(args[0]);
+
+            if (args[0] == "start") { //a faire gestion errreur
+                let err = audioEventsMan.start(args[1]);
+                if (err == 0) msg.react("✅");
+                else {
+                    msg.react("❌");
+                    console.log(err);
+                }
                 return;
             }
-            if (command == "stopaudioevent") { //a faire gestion errreur
-                let err = audioEventsMan.stop(args[0]);
+            if (args[0] == "stop") { //a faire gestion errreur
+                let err = audioEventsMan.stop(args[1]);
+                if (err == 0) msg.react("✅");
+                else {
+                    msg.react("❌");
+                    console.log(err);
+                }
                 return;
             }
-            if (command == "delaudioevent") { //a faire gestion errreur
-                let err = audioEventsMan.delete(args[0]);
+            if (args[0] == "del") { //a faire gestion errreur
+                let err = audioEventsMan.delete(args[1]);
+                if (err == 0) msg.react("✅");
+                else {
+                    msg.react("❌");
+                    console.log(err);
+                }
                 return;
-            }*/
+            }
+
+            if (args[0] == "plan") { //a faire gestion errreur
+                let info = audioEventsMan.getNext(args[1], 30);
+                if (info) {
+                    msg.react("✅");
+                    msg.channel.send(`**Prochaines diffusions**\n\`${info.toString().replace(/,/g,'\n').trim()}\`\n`);
+                } else {
+                    msg.react("❌");
+                    console.log(err);
+                }
+                return;
+            }
 
         }
 
@@ -1610,10 +1658,14 @@ function send_aide_freq(chan) {
 function query_db(query) {
     console.log(query);
     return new Promise((resolve, reject) => {
-        db.query(query, (error, results) => {
+
+        db.query({ sql: query, timeout: 5000 }, (error, results) => {
             if (error) {
                 console.log(error);
                 dif_log_simple("Erreur SQL", "Requête: `" + query + "`\nErreur: `" + error + "`", "#FF100F");
+                if (error.fatal) {
+
+                }
                 return reject(error);
             }
             return resolve(results);
