@@ -1111,8 +1111,7 @@ client.on('message', async msg => {
                     "ACTIF[OUI/NON]\n" +
                     "IDCHAN:[nom/id des canneaux à se connecter, séparés par une virgule ou ALL]\n" +
                     "NBCHAN:[nombre de chan (-1;1024 / ALL)]\n" +
-                    "PLANNIFICATION:[CRON/PERIODIQUE]\n" +
-                    "ARGUMENT_PLAN:[x/* x/* x/* x/* x/* x/* | periode en seconde]\n" +
+                    "ARGUMENT_PLAN:[x/* x/* x/* x/* x/* x/*]\n" +
                     "AUDIO:[vide si audio joint au message/nom du fichier]\n" +
                     "```");
 
@@ -1211,23 +1210,13 @@ client.on('message', async msg => {
                 //FIN NBCHAN
 
                 //PLANIFICATION
-                let methode_plan = lines_param[5].match(/\[(.*?)\]/)[1].trim();
-                let arg_plan = lines_param[6].match(/\[(.*?)\]/)[1].trim();
-                if (methode_plan == "CRON") {
-                    log += "**CRON:" + arg_plan.toString() + "** | ";
-                    new_event.CronPeriodText = arg_plan;
-                } else if (methode_plan == "PERIODIQUE") {
-                    log += "**PERIODIQUE:" + arg_plan.toString() + "** | ";
-                    new_event.PeriodSeconds = arg_plan;
-                } else {
-                    msg.channel.send("Erreur PLANNIFICATION non reconnu !");
-                    return;
-                }
+                let arg_plan = lines_param[5].match(/\[(.*?)\]/)[1].trim();
+                log += "**CRON:" + arg_plan.toString() + "** | ";
+                new_event.CronPeriodText = arg_plan;
                 //FIN PLAN
 
                 //AUDIO
-
-                let fichier_audio = lines_param[7].match(/\[(.*?)\]/)[1].trim();
+                let fichier_audio = lines_param[6].match(/\[(.*?)\]/)[1].trim();
                 if (fichier_audio.length == 0) {
                     //GESTION FICHIER 
                     //console.log(msg.attachments);
@@ -1285,24 +1274,7 @@ client.on('message', async msg => {
                         }
                         info += ` [\`CRON \`]`;
 
-                    } else if (liste[index].timer) {
 
-                        switch (liste[index].timer.state) {
-                            case 0: //pas demarré
-                            case 2: //stoppé
-                                info += `🔴`;
-                                break;
-                            case 1: //actif
-                                info += `🟢`;
-                                break;
-                            case 3: //relancé (jusqu'au prochain cycle)
-                                info += `⤵️`;
-                                break;
-                            default: //erreur
-                                info += `⚠️`;
-                                break;
-                        }
-                        info += ` [\`TIMER\`]`;
                     } else {
                         info += `>ERREUR<`;
                     }
@@ -1336,8 +1308,6 @@ client.on('message', async msg => {
             }*/
 
         }
-
-
 
         fs.writeFileSync('./data/conf_signal.json', JSON.stringify(configuration, null, 2)); //sauvegarde des modifications
 

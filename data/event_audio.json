@@ -12,18 +12,6 @@
             "nb_event": 500
         },
         {
-            "nom": "deuxieme_test",
-            "actif": true,
-            "filename": "piste1.mp3",
-            "PeriodSeconds": "5",
-            "nbChan": 2,
-            "IDChans": [
-                "822181704386871326",
-                "822182706715951164"
-            ],
-            "nb_event": 5
-        },
-        {
             "nom": "test_entier",
             "nbChan": 50,
             "actif": false,
