@@ -1099,90 +1099,242 @@ client.on('message', async msg => {
 
         }
 
-        //gestion event audio
-        /*  format event
-        {
-            "nom": "premier_test",
-            "filename": "piste1.mp3",
-            "actif":false
-            "CronPeriodText": "35 * * * * *",
-            "nbChan": 2,
-            "IDChans": ["822181704386871326", "822182706715951164"]
-        }
-        */
-        if (command == "addaudioevent") { //$addaudioevent nom nb_chan_dif all/freq1,freq2,freq42 [* * * * * *]    =>+fichier joint
 
-            let new_event = {
-                nom: args[0],
-                nbChan: parseInt(args[1]),
-                actif: false,
-                CronPeriodText: msg.content.match(/\[(.*?)\]/)[1] //.replace('[', '').replace(']', '')
-            };
 
-            let array_chan = [];
+        if (command == "audioevent") {
+            if (!args[0]) {
+                msg.channel.send("__AIDE AUDIOEVENT__\n`$audioevent` + commande\n**COMMANDES:**");
 
-            if (args[2] == "all") {
-                configuration.frequence.freq.forEach((frequence) => {
-                    array_chan.push(frequence.ID);
-                });
-            } else {
-                let nomchans = args[2].split(',');
-                let liste_chan = configuration.frequence.freq.filter(frequence =>
-                    (nomchans.indexOf(frequence.nom) != -1 | nomchans.indexOf(frequence.ID) != -1) //filtrer => uniquement les freq avec un nom ou id dans l'argument
-                );
-                liste_chan.forEach((frequence) => {
-                    array_chan.push(frequence.ID);
-                });
+                msg.channel.send("`add` - Ajout d'un event audio, remplir ce formulaire en conservant les crochets et l'envoyer sur ce cannal:");
+                msg.channel.send("```$audioevent add\n" +
+                    "NOM:[nom] \n" +
+                    "ACTIF[OUI/NON]\n" +
+                    "IDCHAN:[nom/id des canneaux à se connecter, séparés par une virgule ou ALL]\n" +
+                    "NBCHAN:[nombre de chan (-1;1024 / ALL)]\n" +
+                    "PLANNIFICATION:[CRON/PERIODIQUE]\n" +
+                    "ARGUMENT_PLAN:[x/* x/* x/* x/* x/* x/* | periode en seconde]\n" +
+                    "AUDIO:[vide si audio joint au message/nom du fichier]\n" +
+                    "```");
+
+                msg.channel.send("`list` - Donne la liste des events audio et leur état");
+                msg.channel.send("`info` + nom de l'event audio - Donne beaucoup plus d'infos sur l'event audio");
+
             }
 
-            new_event.IDChans = array_chan;
+            //string.match(/\[(.*?)\]/)[1] //recupe entre parenthese
 
-            //GESTION FICHIER 
-            //console.log(msg.attachments);
-            if (msg.attachments.first()) { //checks if an attachment is sent
-                let file = msg.attachments.first();
-                console.log(file);
-                if (file.name.indexOf(`mp3`)) { //Download only mp3 
-                    download(file.url, './ressources/' + file.name); //Function I will show later
-                    new_event.filename = file.name;
-                    audioEventsMan.add(new_event, true);
+            //gestion event audio
+            /*  format event
+            {
+                "nom": "premier_test",
+                "filename": "piste1.mp3",
+                "actif":false
+                "CronPeriodText": "35 * * * * *",
+                "nbChan": 2,
+                "IDChans": ["822181704386871326", "822182706715951164"]
+            }
+            */
+
+            if (args[0] == "add") {
+
+                log = "LOG:\n";
+
+                lines_param = msg.content.split('\n');
+                let new_event = {};
+
+                //NOM
+                let nom = lines_param[1].match(/\[(.*?)\]/)[1].trim();
+                if (!nom | nom.length <= 0) {
+                    msg.channel.send("Erreur nom !");
+                    return;
                 }
+                if (audioEventsMan.isNomDejaPris(nom)) { //si nom deja pris
+                    msg.channel.send("Nom déjà pris !");
+                    return;
+                }
+                log += "NOM:**" + nom + "** | ";
+                new_event.nom = nom;
+                //FIN NOM
+
+                //ACTIF
+                let actif_totest = lines_param[2].match(/\[(.*?)\]/)[1].trim();
+                let audio_actif;
+                if (actif_totest == "OUI") audio_actif = true;
+                else if (actif_totest == "NON") audio_actif = false;
+                else {
+                    msg.channel.send("Erreur actif !");
+                    return;
+                }
+                log += "ACTIF:**" + audio_actif + "** | ";
+                new_event.actif = audio_actif;
+                //FIN ACTIF
+
+                //LISTE CHAN
+                let array_chan = [];
+
+                if (lines_param[3].match(/\[(.*?)\]/)[1].trim() == "ALL") {
+                    configuration.frequence.freq.forEach((frequence) => {
+                        array_chan.push(frequence.ID);
+                    });
+                } else {
+                    let nomchans = lines_param[3].match(/\[(.*?)\]/)[1].split(',');
+                    if (nomchans.length == 0) {
+                        msg.channel.send("Erreur IDCHAN, liste non reconnue");
+                        return;
+                    }
+                    let liste_chan = configuration.frequence.freq.filter(frequence =>
+                        (nomchans.indexOf(frequence.nom) != -1 | nomchans.indexOf(frequence.ID) != -1) //filtrer => uniquement les freq avec un nom ou id dans l'argument
+                    );
+                    liste_chan.forEach((frequence) => {
+                        array_chan.push(frequence.ID);
+                    });
+                }
+                log += "IDCHANS:**" + array_chan.toString() + "** | ";
+                new_event.IDChans = array_chan;
+                //FIN LISTE CHAN
+
+
+                //NBCHAN
+                let nb_chan_st = lines_param[4].match(/\[(.*?)\]/)[1].trim();
+                let nb_chan;
+                if (nb_chan_st == "ALL") {
+                    nb_chan = -1;
+                } else {
+                    nb_chan = parseInt(nb_chan_st);
+                }
+                if (nb_chan == 0) {
+                    msg.channel.send("Erreur NBCHAN=0 !");
+                    return;
+                }
+                log += "NBCHANS:**" + nb_chan.toString() + "** | ";
+                new_event.nbChan = nb_chan;
+                //FIN NBCHAN
+
+                //PLANIFICATION
+                let methode_plan = lines_param[5].match(/\[(.*?)\]/)[1].trim();
+                let arg_plan = lines_param[6].match(/\[(.*?)\]/)[1].trim();
+                if (methode_plan == "CRON") {
+                    log += "**CRON:" + arg_plan.toString() + "** | ";
+                    new_event.CronPeriodText = arg_plan;
+                } else if (methode_plan == "PERIODIQUE") {
+                    log += "**PERIODIQUE:" + arg_plan.toString() + "** | ";
+                    new_event.PeriodSeconds = arg_plan;
+                } else {
+                    msg.channel.send("Erreur PLANNIFICATION non reconnu !");
+                    return;
+                }
+                //FIN PLAN
+
+                //AUDIO
+
+                let fichier_audio = lines_param[7].match(/\[(.*?)\]/)[1].trim();
+                if (fichier_audio.length == 0) {
+                    //GESTION FICHIER 
+                    //console.log(msg.attachments);
+                    if (msg.attachments.first()) { //checks if an attachment is sent
+                        let file = msg.attachments.first();
+                        if (file.name.indexOf(`mp3`)) { //Download only mp3 
+                            download(file.url, './ressources/' + file.name); //Function I will show later
+                            new_event.filename = file.name;
+                            log += "FICHIER:**" + file.name + "** | ";
+                        }
+                    }
+                } else {
+                    console.log(fichier_audio);
+                    //check si fichier existe
+                    if (fs.existsSync('./ressources/' + fichier_audio)) {
+                        log += "FICHIER:**" + fichier_audio + "** | ";
+                        new_event.filename = fichier_audio;
+                    } else {
+                        msg.channel.send("Erreur FICHIER N'EXISTE PAS ! " + fichier_audio);
+                        return;
+                    }
+                }
+                //FIN AUDIO
+
+                //et on ajoute
+                msg.channel.send(log);
+                audioEventsMan.add(new_event, true);
+                //check erreur
+                //msg.channel.send("OK ! ");
+                msg.react("✅");
+
+                return;
             }
 
 
-            return;
-        }
+            if (args[0] == "list") {
+                let liste = audioEventsMan.list();
+                let info = "Liste des events audio:";
+                for (let index = 0; index < liste.length; index++) {
+                    //msg.channel.send(`Nom: **${liste[index].nom}** - actif: **${liste[index].cron.running}**`);
+                    info += '\n';
+                    if (liste[index].cron) {
 
-        if (command == "listaudioevent") {
-            let liste = audioEventsMan.list();
-            msg.channel.send("Liste des events audio:");
-            for (let index = 0; index < liste.length; index++) {
-                msg.channel.send(`Nom: **${liste[index].nom}** - actif: **${liste[index].cron.running}**`);
+                        switch (liste[index].cron.running) {
+                            case undefined: //pas demarré
+                            case false: //stoppé
+                                info += `🔴`;
+                                break;
+                            case true: //actif
+                                info += `🟢`;
+                                break;
+                            default: //erreur
+                                info += `⚠️`;
+                                break;
+                        }
+                        info += ` [\`CRON \`]`;
 
+                    } else if (liste[index].timer) {
+
+                        switch (liste[index].timer.state) {
+                            case 0: //pas demarré
+                            case 2: //stoppé
+                                info += `🔴`;
+                                break;
+                            case 1: //actif
+                                info += `🟢`;
+                                break;
+                            case 3: //relancé (jusqu'au prochain cycle)
+                                info += `⤵️`;
+                                break;
+                            default: //erreur
+                                info += `⚠️`;
+                                break;
+                        }
+                        info += ` [\`TIMER\`]`;
+                    } else {
+                        info += `>ERREUR<`;
+                    }
+                    info += ` \`${liste[index].nom}\``;
+
+                }
+                msg.channel.send(info);
+                return;
             }
-            return;
-        }
 
-        //fusion avec liste ?
-        if (command == "infoaudioevent") { //a faire meilleur affichage
-            let info = audioEventsMan.info(args[0]);
-            if (info == 1 | info == 2) msg.channel.send(`Erreur ${info} !`); //a faire meilleur traitement
-            console.log(info);
-            msg.channel.send(`Nom: ${info[0].nom}\nActivité: ${info[0].cron.running} | ${info[1].actif}\nFichier:  ${info[1].filename}\nCron:  ${info[1].CronPeriodText}\nnbChan:  ${info[1].nbChan}\nIDChans: ${info[1].IDChans}`);
-            return;
-        }
+            //fusion avec liste ?
+            if (args[0] == "info") { //a faire meilleur affichage
+                let info = audioEventsMan.info(args[1]); //redonne [0] l'objet audioevent & [1] la donnée enregistrée | 1 si pas objet, 2 si pas enregistré
 
-        if (command == "startaudioevent") { //a faire gestion errreur
-            let err = audioEventsMan.start(args[0]);
-            return;
-        }
-        if (command == "stopaudioevent") { //a faire gestion errreur
-            let err = audioEventsMan.stop(args[0]);
-            return;
-        }
-        if (command == "delaudioevent") { //a faire gestion errreur
-            let err = audioEventsMan.delete(args[0]);
-            return;
+                console.log(info);
+
+                return;
+            }
+            /*
+            if (command == "startaudioevent") { //a faire gestion errreur
+                let err = audioEventsMan.start(args[0]);
+                return;
+            }
+            if (command == "stopaudioevent") { //a faire gestion errreur
+                let err = audioEventsMan.stop(args[0]);
+                return;
+            }
+            if (command == "delaudioevent") { //a faire gestion errreur
+                let err = audioEventsMan.delete(args[0]);
+                return;
+            }*/
+
         }
 
 
