@@ -1539,7 +1539,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
         }
 
         //niveau de brouillage
-        /*
+
         if (configuration.brouillage_caractere < 3) {
             embed_signal.setFooter("3/3", "https://i.goopics.net/5ykGd.png");
         }
@@ -1552,7 +1552,8 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
         if (configuration.brouillage_caractere >= 10) {
             embed_signal.setFooter("0/3", "https://i.goopics.net/7DayJ.png");
         }
-        */ //https://i.ibb.co/p4x90sz/wifi.gif
+
+        /*//https://i.ibb.co/p4x90sz/wifi.gif
         if (configuration.brouillage_caractere < 3) {
             embed_signal.setFooter("3/3", "https://i.ibb.co/HDNdFg2/reseau4.png");
         }
@@ -1565,7 +1566,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
         if (configuration.brouillage_caractere >= 10) {
             embed_signal.setFooter("0/3", "https://i.ibb.co/MCBnRKD/reseau1.png");
         }
-
+        */
 
 
 
@@ -1600,14 +1601,17 @@ function CallBack_Message(sent, msg, utilisateur, member, log_titre, log) { // '
     query_db("UPDATE users SET DERMSG = " + utilisateur.DERMSG + ", nb_msg = nb_msg+1, date_dermsg=\"" + isoDate + "\" WHERE ID=\"" + msg.author.id + "\"").then(() => {
         query_db("SELECT nb_msg FROM users WHERE ID=\"" + msg.author.id + "\"").then((result) => {
             let nb_msg = result[0].nb_msg;
+
+            dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID_utilisateur: " + utilisateur.ID + "\nNombre de message: " + nb_msg + "`", Channel_log, member.user.avatarURL(), "#000000", config.MP_admin, false); //log
+
             if (nb_msg % 50 == 0) { //si multiple de 50
                 msg.author.send(`Wahou ! Tu as déjà écrit ${nb_msg} messages, tu as l'aire d'aimer le bot :partying_face:\nN'hésite pas à remercier son créateur et à contribuer à son développement en faisant un don ici:\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormement :wink:`);
+                config.MP_admin.send("msg don envoyé à " + log_titre + " apres " + nb_msg);
             }
         });
     });
 
 
-    dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID_utilisateur: " + utilisateur.ID + "`", Channel_log, member.user.avatarURL(), "#000000", config.MP_admin, false); //log
 }
 
 function Error(num, err) {
