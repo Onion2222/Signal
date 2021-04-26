@@ -78,11 +78,11 @@ client.on('ready', () => {
     admin = client.users.cache.get(config.ID_admin); //erreur si trouve pas ??? A FAIRE
     //acq chan log & radio
     Channel_log = client.channels.cache.get(config.ID_log);
-    if (!Channel_log) { //si cannal log innaccessible
+    if (!Channel_log) { //si cnnal log innaccessible
         console.error("Channel " + config.ID_log + " non existant !\nIl n'y aura donc pas de log et d'acces aux commandes ADMIN");
         console.log("Passage en mode debug admin");
         config.MP_admin = true; //forçage MP ADMIN
-        dif_log("⚠️ MODE DEBUG ADMIN ⚠️", "Cannal de log innaccessible !", undefined, client.user.avatarURL(), "#0000FF", admin);
+        dif_log("⚠️ MODE DEBUG ADMIN ⚠️", "Canal de log innaccessible !", undefined, client.user.avatarURL(), "#0000FF", admin);
     }
 
     dif_log("⚠️ DEMARRAGE SIGNAL ⚠️", "Le bot vient de redemarrer.\nSi ce n'était pas prévu, contactez l'administrateur du bot !", Channel_log, client.user.avatarURL(), "#FF0000", admin);
@@ -176,7 +176,7 @@ client.on('message', async msg => {
     if (member.roles.size <= 1 & msg.author.id !== config.ID_admin) { //permission @everyone ou nulle ET pas channel candidature et pas admin => alerte modo
         let log = "\nIntrusion du systeme signal par une personne non autorisée\n";
         log += "Auteur:" + msg.author.username + "\nChannel:" + msg.channel.name + "\nContenu:" + msg.cleanContent;
-        dif_log_simple("⚠️ Intrusion !", log, "#e000ff");
+        dif_log("⚠️ Intrusion !", log, Channel_log, member.user.avatarURL(), "#e000ff");
         return;
     }
 
@@ -192,7 +192,8 @@ client.on('message', async msg => {
 
     //si l'utilisateur n'existe pas, le créer
     if (utilisateur == undefined) {
-        dif_log_simple("Nouvel utilisateur", "Utilisateur : " + msg.author.username, "#00FF00");
+        //dif_log_simple("Nouvel utilisateur", "Utilisateur : " + msg.author.username, "#00FF00");
+        dif_log("Nouvel utilisateur", "Utilisateur : " + get_usernames(member, true, true, false), Channel_log, member.user.avatarURL(), "#00FF00");
 
         utilisateur = {};
         utilisateur.ID = msg.author.id;
@@ -211,7 +212,7 @@ client.on('message', async msg => {
     } else {
         if (utilisateur.bloque & msg.author.id != config.ID_admin) {
             msg.author.send(string_message.bloque); //message bloqué
-            dif_log_simple("Utilisateur banni !", get_usernames(member, true) + " a tenté d'envoyer:\n`" + msg.content + "`", "#9e0101");
+            dif_log("Utilisateur banni !", get_usernames(member, true, true, true) + " a tenté d'envoyer:\n`" + msg.content + "`", Channel_log, member.user.avatarURL(), "#9e0101");
             return;
         }
     }
@@ -314,16 +315,18 @@ client.on('message', async msg => {
         msg.react("✅");
         member.edit({ channel: freq_togo.ID });
         //log
-        dif_log_simple("🔊 Acces Vocal", get_usernames(member, false) + " vient d'acceder au channel " + freq_togo.nom, "00ecff");
+        dif_log("🔊 Acces Vocal", get_usernames(member, true, true, false) + " vient d'acceder au channel " + freq_togo.nom, Channel_log, member.user.avatarURL(), "00ecff");
         return;
     }
 
 
     if (command == "listefreq") {
+        dif_log("Demande de la liste des fréquences", "Utilisateur : " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#00ff55");
         send_liste_freq(msg.author);
         return;
     }
     if (command == "aidefreq") {
+        dif_log("Demande d'aide pour les fréquences", "Utilisateur : " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#00ff55");
         send_aide_freq(msg.author);
         send_liste_freq(msg.author);
         return;
@@ -338,13 +341,13 @@ client.on('message', async msg => {
     }*/
 
     if (command === "ping") {
-        dif_log_simple("Ping", "Utilisateur : " + get_usernames(member, false), "#000000");
+        dif_log("Ping", "Utilisateur : " + get_usernames(member, true, true, false), Channel_log, member.user.avatarURL(), "#000000");
         msg.reply(string_message.ping);
         return;
     }
 
     if (command === "help" | command === "aide") {
-        dif_log_simple("Demande d'aide", "Utilisateur : " + get_usernames(member, true), "#00ff55");
+        dif_log("Demande d'aide", "Utilisateur : " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#00ff55");
         //https://paypal.me/pools/c/8mowOxex8i
         embed_aide(msg.author);
 
@@ -361,7 +364,7 @@ client.on('message', async msg => {
     }
 
     if (command === "aidecouleur") {
-        dif_log_simple("Demande d'aide couleur", "Utilisateur : " + get_usernames(member, true), "#00ff55");
+        dif_log("Demande d'aide couleur", "Utilisateur : " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#00ff55");
 
         let embed = new Discord.MessageEmbed();
         embed.setTitle("__**SIGNAL**__");
@@ -425,7 +428,7 @@ client.on('message', async msg => {
         Channel_radio.messages.fetch(utilisateur.DERMSG).then(message_sup => {
             message_sup.delete();
 
-            dif_log_simple("Supression", "=>Suppression demandée du dernier message de " + get_usernames(member, true), "#ff0061");
+            dif_log("Supression", "=>Suppression demandée du dernier message de " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#ff0061");
 
             msg.author.send(string_message.deleted);
             if (msg.channel.type === "dm") {
@@ -451,7 +454,7 @@ client.on('message', async msg => {
             //console.log(content);
             Send_Message(msg, content, utilisateur, member, true, clef);
         } else {
-            dif_log_simple("Cryptage bloqué", "Utilisateur : " + get_usernames(member, false), "#d1ff00");
+            dif_log("Cryptage bloqué", "Utilisateur : " + get_usernames(member, true, true, false), Channel_log, member.user.avatarURL(), "#d1ff00");
             msg.author.send(string_message.blockcrypt.replace("%NAMESERV%", nom_serveur).replace("%MSG%", msg.cleanContent)); //"Le cryptage est actuellement interdit sur le canal transmission. (voir avec les administrateurs de " + nom_serveur + ")\n```" + msg.cleanContent + "```"
         }
         return;
@@ -466,7 +469,7 @@ client.on('message', async msg => {
             //console.log(new_text);
             //new_text = decrypter(new_text, CLEF_PROG);
 
-            dif_log_simple("Décryptage", "Tentative de decryptage de " + get_usernames(member, false) + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text, "#d1ff00");
+            dif_log("Décryptage", "Tentative de decryptage de " + get_usernames(member, true, true, false) + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text, Channel_log, member.user.avatarURL(), "#d1ff00");
 
             msg.author.send("Message décodé 🔐 :\n" + "```" + new_text + "```");
             if (msg.channel.type !== "text") {
@@ -485,7 +488,7 @@ client.on('message', async msg => {
 
     if (command === 'couleur') {
         //#a85a32
-        dif_log_simple("Couleur", "Changement de couleur demandé par l'utilisateur " + get_usernames(member, true) + "\nMessage: `" + msg.content + "`", "#4dff00");
+        dif_log("Couleur", "Changement de couleur demandé par l'utilisateur " + get_usernames(member, true, true, true) + "\nMessage: `" + msg.content + "`", Channel_log, member.user.avatarURL(), "#4dff00");
         if (configuration.changement_couleur) {
             if (args[0] == undefined) {
                 msg.author.send(string_message.color.noarg);
@@ -516,7 +519,7 @@ client.on('message', async msg => {
             query_db("UPDATE users SET COULEUR = \"" + utilisateur.COULEUR + "\" WHERE ID=\"" + msg.author.id + "\"");
             return;
         } else {
-            dif_log_simple("Couleur", "Demande changement de couleur bloqué !", "#4dff00");
+            dif_log("Couleur", "Demande changement de " + get_usernames(member, true, true, true) + " couleur de bloqué !", Channel_log, member.user.avatarURL(), "#4dff00");
             msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
@@ -528,13 +531,13 @@ client.on('message', async msg => {
 
         let ligne = msg.content.split("\n");
         if (ligne.length == 1) {
-            dif_log_simple("Couleur", "Demande aide formulaire couleur", "#4dff00");
+            dif_log("Couleur", "Demande aide formulaire couleur par l'utilisateur " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#4dff00");
             msg.author.send(string_message.color.blocked);
             msg.author.send("```$demandechangementcouleur \nCouleur: [#000000 ou RANDOM]\nMotivation: [Pourquoi vous souhaitez changer de couleur]```");
             return;
         }
 
-        dif_log_simple("Couleur", "Demande changment de couleur\nFormulaire:\n" + msg.cleanContent, "#4dff00");
+        dif_log_simple("DEBUG Couleur", "Demande changment de couleur" + get_usernames(member, true, true, true) + "\nFormulaire:\n" + msg.cleanContent, "#4dff00");
         //si nombre de ligne ok
         if (ligne.length < 3) {
             msg.react("❌");
@@ -575,10 +578,11 @@ client.on('message', async msg => {
 
 
         let embed = new Discord.MessageEmbed().setColor("#86F67E").setTitle(`Demande de changement de couleur`);
-        embed.setDescription(`L'utilisateur **${get_usernames(member, true)}** demande un changement de couleur`);
+        embed.setDescription(`L'utilisateur **${get_usernames(member, true, true, true)}** demande un changement de couleur`);
         embed.addField(`Motivation:`, `\`\`\`${ligne[2].slice(11).trim()}\`\`\``);
         embed.addField(`Couleur voulue:`, `\`\`\`${arg_couleur[1]}\`\`\``); //bien couper ou il y a la couleur
         embed.addField(`Commande pour valider ce changement:`, `\`\`\`$validechgtcouleur ${msg.author.id} ${arg_couleur[1]}\`\`\``);
+        embed.setFooter(get_usernames(member, true, true, false), member.user.avatarURL());
         if (Channel_log) Channel_log.send({ content: "@here", embed: embed });
         else admin.send({ content: "@here", embed: embed });
         msg.react("✅");
@@ -587,7 +591,7 @@ client.on('message', async msg => {
     }
 
     if (command === 'macouleur') {
-        dif_log_simple("Couleur", "Interrogation couleur par l'utilisateur " + get_usernames(member, false), "#4dff00");
+        dif_log("Couleur", "Interrogation couleur par l'utilisateur " + get_usernames(member, true, true, false), Channel_log, member.user.avatarURL(), "#4dff00");
         let embed = new Discord.MessageEmbed().setColor(utilisateur.COULEUR)
             .setTitle(string_message.color.yourcolor + utilisateur.COULEUR);
         msg.author.send(embed);
@@ -595,7 +599,7 @@ client.on('message', async msg => {
     }
 
     if (command == "credit") {
-        dif_log_simple("Crédit", "Demande credit par l'utilisateur " + get_usernames(member, true), "#3b2e2e");
+        dif_log("Crédit", "Demande credit par l'utilisateur " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#3b2e2e");
         let embed_credit = new Discord.MessageEmbed()
             .setColor(16312092)
             .setTimestamp()
@@ -640,6 +644,7 @@ client.on('message', async msg => {
                 .addField("$difhelpfreq ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
                 .addField("$evalSQL", "Evalue une commande SQL :warning: NE PAS UTILISER SI VOUS N'ETES PAS SUR !!!")
                 .addField("$chgtcouleur", "Active ou désactive le changement de couleur libre")
+                .addField("$audioevent", "Aide pour les evenements audio")
                 .addField("Commandes EVENT", "Laissez Onion faire, assez complexe:\n$maj | $stopmaj | $mise_en_route")
                 .setFooter("Par Onion² pour " + nom_serveur);
             msg.channel.send(embed_signal);
@@ -1114,14 +1119,15 @@ client.on('message', async msg => {
                     .setTimestamp()
                     .setTitle("AIDE AUDIOEVENT")
                     .setDescription("`$audioevent` + commande\n**COMMANDES:**")
-                    .addField("`add`", "Ajout d'un event audio, remplir ce formulaire en conservant les crochets et l'envoyer sur ce cannal:" +
-                        "```$audioevent add\n" +
+                    .addField("`add`", "Ajout d'un event audio, remplir ce formulaire en conservant les crochets et l'envoyer sur ce canal:" +
+                        "```$audioevent add ->\n" +
                         "NOM:[nom] \n" +
                         "ACTIF[OUI/NON]\n" +
-                        "IDCHAN:[nom/id des canneaux à se connecter, séparés par une virgule ou ALL]\n" +
+                        "IDCHAN:[nom/id des canaux à se connecter, séparés par une virgule ou ALL]\n" +
                         "NBCHAN:[nombre de chan (-1;1024 / ALL)]\n" +
                         "CRON:[voir https://crontab.guru/ et https://cronjob.xyz/]\n" +
                         "AUDIO:[vide si audio joint au message/nom du fichier]\n" +
+                        "VOLUME:[entre 0 et 1 (par ex: 0.75)]\n" +
                         "```")
                     .addField("`list`", "Donne la liste des events audio et leur état")
                     .addField("`info`", "nom de l'event audio - Donne beaucoup plus d'infos sur l'event audio")
@@ -1263,6 +1269,20 @@ client.on('message', async msg => {
                 }
                 //FIN AUDIO
 
+
+
+                //VOLUME
+                let volume = lines_param[7].match(/\[(.*?)\]/)[1].toString();
+
+                if (volume > 1 | volume < 0) {
+                    msg.channel.send("Erreur volume incorrecte !");
+                    return;
+                }
+
+                log += "VOLUME:**" + volume + "**";
+                new_event.volume = volume;
+                //FIN VOLUME
+
                 //et on ajoute
                 msg.channel.send(log);
                 audioEventsMan.add(new_event, true);
@@ -1304,6 +1324,7 @@ client.on('message', async msg => {
                         `**NbChans**\t\`${info[1].nbChan}\`\n` +
                         `**CRON**\t\`${info[1].CronPeriodText}\`\n` +
                         `**FICHIER**\t\`${info[1].filename}\`\n` +
+                        `**VOLUME**\t\`${info[1].volume}\`\n` +
                         `**INFO CRON**\n` +
                         `*Derniere execution*\t\`${audioEventsMan.getLast(info[0].nom)}\`\n` +
                         `*Prochaine execution*\t\`${audioEventsMan.getNext(info[0].nom)}\`\n`;
@@ -1354,6 +1375,8 @@ client.on('message', async msg => {
                 }
                 return;
             }
+
+            msg.react("❔");
 
         }
 
@@ -1491,7 +1514,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
 
     if (mot_interdits.length != 0) {
         msg.author.send(string_message.sending_msg.word_banned + mot_interdits.toString());
-        dif_log_simple(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```", "#e82020");
+        dif_log(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```", Channel_log, member.user.avatarURL(), "#e82020");
         return;
     }
 
@@ -1516,6 +1539,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
         }
 
         //niveau de brouillage
+        /*
         if (configuration.brouillage_caractere < 3) {
             embed_signal.setFooter("3/3", "https://i.goopics.net/5ykGd.png");
         }
@@ -1528,6 +1552,22 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
         if (configuration.brouillage_caractere >= 10) {
             embed_signal.setFooter("0/3", "https://i.goopics.net/7DayJ.png");
         }
+        */ //https://i.ibb.co/p4x90sz/wifi.gif
+        if (configuration.brouillage_caractere < 3) {
+            embed_signal.setFooter("3/3", "https://i.ibb.co/HDNdFg2/reseau4.png");
+        }
+        if (configuration.brouillage_caractere >= 3 & configuration.brouillage_caractere < 5) {
+            embed_signal.setFooter("2/3", "https://i.ibb.co/Dgwrhy7/reseau3.png");
+        }
+        if (configuration.brouillage_caractere >= 5 & configuration.brouillage_caractere < 10) {
+            embed_signal.setFooter("1/3", "https://i.ibb.co/1MP2tqp/reseau2.png");
+        }
+        if (configuration.brouillage_caractere >= 10) {
+            embed_signal.setFooter("0/3", "https://i.ibb.co/MCBnRKD/reseau1.png");
+        }
+
+
+
 
         if (cryptage) {
 
@@ -1557,7 +1597,16 @@ function CallBack_Message(sent, msg, utilisateur, member, log_titre, log) { // '
     //update_user(msg.author.id, utilisateur);
     //mysql:
     let isoDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    query_db("UPDATE users SET DERMSG = " + utilisateur.DERMSG + ", nb_msg = nb_msg+1, date_dermsg=\"" + isoDate + "\" WHERE ID=\"" + msg.author.id + "\"");
+    query_db("UPDATE users SET DERMSG = " + utilisateur.DERMSG + ", nb_msg = nb_msg+1, date_dermsg=\"" + isoDate + "\" WHERE ID=\"" + msg.author.id + "\"").then(() => {
+        query_db("SELECT nb_msg FROM users WHERE ID=\"" + msg.author.id + "\"").then((result) => {
+            let nb_msg = result[0].nb_msg;
+            if (nb_msg % 50 == 0) { //si multiple de 50
+                msg.author.send(`Wahou ! Tu as déjà écrit ${nb_msg} messages, tu as l'aire d'aimer le bot :partying_face:\nN'hésite pas à remercier son créateur et à contribuer à son développement en faisant un don ici:\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormement :wink:`);
+            }
+        });
+    });
+
+
     dif_log(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID_utilisateur: " + utilisateur.ID + "`", Channel_log, member.user.avatarURL(), "#000000", config.MP_admin, false); //log
 }
 

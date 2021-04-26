@@ -86,7 +86,7 @@
             },
             "help": {
                 "title": "__Aide pour les fréquences radios__",
-                "decription": "Avant d'integrer une fréquence, vous devez être connecté à un channel vocal",
+                "description": "Avant d'integrer une fréquence, vous devez être connecté à un channel vocal",
                 "gopublic": {
                     "name": "Acceder à une fréquence publique:",
                     "value": "`$freq` suivi du nom de la frequence"

@@ -1,28 +1,29 @@
 {
-    "Audio_events": [{
-            "nom": "premier_test",
-            "actif": true,
-            "filename": "coin.mp3",
-            "CronPeriodText": "30 * * * * *",
-            "nbChan": 2,
-            "IDChans": [
-                "822181704386871326",
-                "822182706715951164"
-            ],
-            "nb_event": 500
-        },
-        {
-            "nom": "test_all_cron2",
-            "actif": false,
-            "IDChans": [
-                "822181704386871326",
-                "822182676261634118",
-                "822182706715951164",
-                "825014405841551380"
-            ],
-            "nbChan": 1,
-            "CronPeriodText": "*/2 * * * *",
-            "filename": "coin.mp3"
-        }
-    ]
+  "Audio_events": [
+    {
+      "nom": "test1",
+      "actif": true,
+      "volume": 0.1,
+      "IDChans": [
+        "822181704386871326"
+      ],
+      "nbChan": -1,
+      "CronPeriodText": "*/1 * * * *",
+      "filename": "coin.mp3"
+    },
+    {
+      "nom": "1",
+      "actif": true,
+      "IDChans": [
+        "822181704386871326",
+        "822182676261634118",
+        "822182706715951164",
+        "825014405841551380"
+      ],
+      "nbChan": -1,
+      "CronPeriodText": "* * * * *",
+      "filename": "somebody_once.mp3",
+      "volume": "0.1"
+    }
+  ]
 }
