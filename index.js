@@ -139,7 +139,7 @@ client.on('ready', () => {
         }
     }, 360000);
 
-}).catch(err => Error(987859, err));
+})
 
 
 
@@ -1386,7 +1386,7 @@ client.on('message', async msg => {
 
     } //fin ID LOG
 
-}).catch(err => Error(666, err)); //fin rec message
+})
 
 
 
