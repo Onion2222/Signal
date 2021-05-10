@@ -6,11 +6,15 @@
 
 /* jshint node: true */
 
-console.log("=====================================================");
-console.log("================BOT DISCORD PAR ONION================");
-console.log("================     S.I.G.N.A.L     ================");
-console.log("=====================================================");
-
+console.log("==============================================");
+console.log("███████╗██╗ ██████╗ ███╗   ██╗ █████╗ ██╗     ");
+console.log("██╔════╝██║██╔════╝ ████╗  ██║██╔══██╗██║     ");
+console.log("███████╗██║██║  ███╗██╔██╗ ██║███████║██║     ");
+console.log("╚════██║██║██║   ██║██║╚██╗██║██╔══██║██║     ");
+console.log("███████║██║╚██████╔╝██║ ╚████║██║  ██║███████╗");
+console.log("╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝");
+console.log("==============================================");
+console.log("VERSION 4.0                     Par onion²\n\n");
 //lib
 const Discord = require('discord.js');
 const mysql = require('mysql');
@@ -25,13 +29,12 @@ const { crypter, decrypter } = require('./lib/crypt.js');
 const { brouilleCouleurHex, alea_couleur, hexcolor_validator } = require('./lib/couleur.js');
 const { cleanup } = require('./lib/cleanup.js');
 const { maj, stopmaj, stopmaj_f, mise_en_route } = require('./lib/event.js');
-const { dif_log, get_corres_listeID_nom, get_usernames, random, randomTF, validator } = require('./lib/util.js');
+const { dif_log, get_corres_listeID_nom, get_usernames, random, randomTF, validator, brouiller } = require('./lib/util.js');
 
 const config = require("./data/conf_bot.json");
 const string_message = require("./data/string_message.json");
 
 
-console.log("VERSION " + config.version);
 
 const client = new Discord.Client();
 
@@ -39,7 +42,6 @@ let configuration = {};
 
 const appel = "$";
 
-//var msg_count=0;
 
 let Channel_log;
 let Channel_radio;
@@ -58,6 +60,7 @@ const db = mysql.createPool({
 
 //const CLEF_PROG = "clefdeprog";
 
+
 //creation du client
 client.login(config.TOKEN);
 //debug
@@ -70,10 +73,8 @@ client.on('error', err => dif_log_r("⚠️ Erreur !", "ERREUR client" + err[0],
 //init du bot
 client.on('ready', () => {
 
-    console.log(`Connecté !\nNom:${client.user.tag}`);
-    client.user.setActivity(`capter (${appel.toString()}aide / ${appel.toString()}aidefreq )`);
-    console.log("=> Le bot Signal vient d'être lancé");
     console.log(`Connecté !\nNom:${client.user.tag} client:${client.users.cache.size} channels:${client.channels.cache.size} serveur:${client.guilds.cache.size}`);
+    client.user.setActivity(`capter (${appel.toString()}aide / ${appel.toString()}aidefreq )`);
 
     admin = client.users.cache.get(config.ID_admin); //erreur si trouve pas ??? A FAIRE
     //acq chan log & radio
@@ -139,7 +140,7 @@ client.on('ready', () => {
         }
     }, 360000);
 
-})
+});
 
 
 
@@ -154,7 +155,14 @@ client.on('message', async msg => {
     if (msg.type !== 'DEFAULT') return; // si pas message "normal"
 
     if (msg.channel.id == config.ID_radio) msg.delete(); //suppr message directement si ecrit dans channel roleplay
-    if (msg.channel.id != config.ID_radio & msg.channel.type != "dm" & msg.channel.id != config.ID_log & msg.content != "$help" & msg.content != "$hrp") return; //si pas RP/test et pas MP alors on s'en fout et pas help
+
+    //si mentions de bot alors reagir 
+    if (msg.mentions.users.has(client.user.id)) {
+        msg.react("🤖");
+        //msg.reply("salut !");
+    }
+
+    if (msg.channel.id != config.ID_radio & msg.channel.type != "dm" & msg.channel.id != config.ID_log & msg.content != "$help") return; //si pas RP/test et pas MP alors on s'en fout et pas help
 
     if (!configuration.actif & (msg.channel.id != config.ID_log & msg.author.id !== config.ID_admin)) { //commande $actif (desactivable depuis log ou Admin)
         msg.author.send("ERREUR!\nSignal est actuellement indisponible !");
@@ -334,13 +342,6 @@ client.on('message', async msg => {
         return;
     }
 
-    /*
-    if (command === "hrp") {
-        dif_log_r("HRP", "Utilisateur : " + msg.author.username);
-        msg.channel.send("Attention, ce que tu viens de demander/dire semble HRP !\nSi tu souhaites parler de manière RP, je t'invite à m'envoyer un message privé qui sera retransmis __directement__ et __anonymement__ sur le channel <#" + Channel_radio.id + ">\n(`$help` pour plus d'information)");
-        msg.delete();
-        return;
-    }*/
 
     if (command === "ping") {
         dif_log_r("Ping", "Utilisateur : " + get_usernames(member, true, true, false), Channel_log, member.user.avatarURL(), "#000000");
@@ -428,9 +429,10 @@ client.on('message', async msg => {
         }
         //let Channel_radio = client.channels.get(config.ID_radio);
         Channel_radio.messages.fetch(utilisateur.DERMSG).then(message_sup => {
+            console.log(message_sup);
+            dif_log_r("Supression", "Suppression demandée du dernier message de " + get_usernames(member, true, true, true) + "\nMessage:\n`" + message_sup.embeds[0].description + "`", Channel_log, member.user.avatarURL(), "#ff0061");
             message_sup.delete();
 
-            dif_log_r("Supression", "=>Suppression demandée du dernier message de " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#ff0061");
 
             msg.author.send(string_message.deleted);
             if (msg.channel.type === "dm") {
@@ -583,7 +585,8 @@ client.on('message', async msg => {
         embed.setDescription(`L'utilisateur **${get_usernames(member, true, true, true)}** demande un changement de couleur`);
         embed.addField(`Motivation:`, `\`\`\`${ligne[2].slice(11).trim()}\`\`\``);
         embed.addField(`Couleur voulue:`, `\`\`\`${arg_couleur[1]}\`\`\``); //bien couper ou il y a la couleur
-        embed.addField(`Commande pour valider ce changement:`, `\`\`\`$validechgtcouleur ${msg.author.id} ${arg_couleur[1]}\`\`\``);
+        embed.addField(`Commande pour __valider__ ce changement:`, `\`\`\`$validechgtcouleur ${msg.author.id} ${arg_couleur[1]}\`\`\``);
+        embed.addField(`Commande pour __refuser__ ce changement:`, `\`\`\`$refusechgtcouleur ${msg.author.id} [RAISON DU REFUS]\`\`\``);
         embed.setFooter(get_usernames(member, true, true, false), member.user.avatarURL());
         if (Channel_log) Channel_log.send({ content: "@here", embed: embed });
         else admin.send({ content: "@here", embed: embed });
@@ -636,7 +639,7 @@ client.on('message', async msg => {
                 .addField("$ban X / $deban X / $listeban", "Ban/Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
                 .addField("$delaidel X", "Modifie la durée des message\nX: durée en ms")
                 .addField("$cryptage", "Active ou desactive la commande $crypt")
-                .addField("$addmotinterdit MOT / $listemotinterdit", "Ajoute un regex interdit à la liste / Affiche la liste")
+                .addField("$forbiddenword + add/del/list", "Ajoute/Suprrime un regex interdit à la liste / Affiche la liste")
                 .addField("$listefreqmdp", "Affiche la liste des fréquence avec leur ID et leur mdp")
                 .addField("$addfreqprivée nom mdp ID", "Ajoute une frequence privé")
                 .addField("$addfreq nom ID", "Ajoute une frequence publique")
@@ -793,6 +796,7 @@ client.on('message', async msg => {
         }
 
 
+        //validation changement de couleur
         if (command == "validechgtcouleur") {
             //$validechgtcouleur 328584955934277633  #0FF0F6
             try {
@@ -807,6 +811,18 @@ client.on('message', async msg => {
                 //message pour avertir utilisateur
                 let user = await client.users.fetch(args[0]);
                 user.send("Votre demande de changement de couleur a été validée :yum:\nConsultez votre nouvelle couleur avec la commande `$macouleur`");
+
+            } catch (error) {
+                msg.channel.send("Il semble y avoir une erreur dans la commande, contactez onion !");
+                console.log(error);
+            }
+        }
+        //refus de changement de couleur
+        if (command == "refusechgtcouleur") {
+            //$refusechgtcouleur 328584955934277633
+            try {
+                let user = await client.users.fetch(args[0]);
+                user.send("Votre demande de changement de couleur a été refusée :confused:\nVoici la raison:\n> " + msg.content.match(/\[(.*?)\]/)[1].trim());
 
             } catch (error) {
                 msg.channel.send("Il semble y avoir une erreur dans la commande, contactez onion !");
@@ -956,15 +972,26 @@ client.on('message', async msg => {
             return;
         }
 
-        if (command == "addmotinterdit") { //$addmotinterdit couille
-            configuration.mots_interdits.push(args[0]);
-            console.log("Nouveau mot interdit: " + configuration.mots_interdits[configuration.mots_interdits.length - 1]);
-            msg.react("✅");
-        }
 
-        if (command == "listemotinterdit") { //$addmotinterdit couille
-            msg.channel.send("Mots interdits: \n" + configuration.mots_interdits.toString());
-            return;
+        if (command == "forbiddenword") {
+
+            if (args[0] == "add") { //$addmotinterdit couille
+                configuration.mots_interdits.splice(configuration.mots_interdits.indexOf(args[1]), 1);
+                console.log("Supression du mot interdit");
+                msg.react("✅");
+            }
+
+            if (args[0] == "del") { //$addmotinterdit couille
+                configuration.mots_interdits.push(args[1]);
+                console.log("Nouveau mot interdit: " + configuration.mots_interdits[configuration.mots_interdits.length - 1]);
+                msg.react("✅");
+            }
+
+            if (args[0] == "list") { //$addmotinterdit couille
+                msg.channel.send("Mots interdits: \n" + configuration.mots_interdits.toString());
+                return;
+            }
+
         }
 
         if (command == "addfreqprivée") { //$addfreqprive nom mdp ID
@@ -1114,17 +1141,78 @@ client.on('message', async msg => {
 
 
 
+        //commandes gestions de fichier
+        if (command == "file") {
+            if (!args[0]) { //si pas d'argument => AIDE
+                let embed_Aide_eventAudio = new Discord.MessageEmbed()
+                    .setColor("#8630F3")
+                    .setTimestamp()
+                    .setTitle("AIDE GESTION FICHIERS")
+                    .setDescription("`$file` + commande + argument(s)\n**COMMANDES:**")
+                    .addField("`add`", "Ajout d'**un** fichier mis en piece jointe")
+                    .addField("`list`", "Donne la liste des fichiers")
+                    .addField("`del` + nom d'un fichier", "Supprime le fichier");
+                msg.channel.send(embed_Aide_eventAudio);
+                return;
+            }
+
+
+            //liste
+            if (args[0] == "list") {
+                let liste = "";
+                fs.readdirSync("./ressources").forEach(file => {
+                    //console.log(file);
+                    liste += "\n> `" + file + "`";
+                });
+
+                msg.channel.send("Liste des fichiers:" + liste);
+                return;
+            }
+
+            if (args[0] == "add") {
+                //GESTION FICHIER 
+                //console.log(msg.attachments);
+                if (msg.attachments.first()) { //checks if an attachment is sent
+                    let file = msg.attachments.first();
+                    download(file.url, './ressources/' + file.name);
+                    msg.channel.send("`" + file.name + "` ajouté !");
+                    msg.react("✅");
+                    return;
+                } else {
+                    msg.channel.send("Erreur, pas fichier attaché");
+                    return;
+                }
+            }
+            if (args[0] == "del") {
+                fs.unlink('./ressources/' + args[1], (err) => {
+                    if (err) { //si erreur
+                        msg.channel.send("Le fichier ne semble pas exister, ou il y a une autre erreur... :thinking:");
+                        msg.react("❌");
+                        return;
+                    }
+                    //file removed
+                    msg.channel.send(args[1] + " supprimé !");
+                    msg.react("✅");
+                    msg.react("🗑️");
+                    return;
+                });
+                return;
+            }
+        }
+
+
+
         if (command == "audioevent") {
             if (!args[0]) {
                 let embed_Aide_eventAudio = new Discord.MessageEmbed()
                     .setColor("#8630F3")
                     .setTimestamp()
                     .setTitle("AIDE AUDIOEVENT")
-                    .setDescription("`$audioevent` + commande\n**COMMANDES:**")
+                    .setDescription("`$audioevent` + commande + argument(s)\n**COMMANDES:**")
                     .addField("`add`", "Ajout d'un event audio, remplir ce formulaire en conservant les crochets et l'envoyer sur ce canal:" +
                         "```$audioevent add ->\n" +
                         "NOM:[nom] \n" +
-                        "ACTIF[OUI/NON]\n" +
+                        "ACTIF:[OUI/NON]\n" +
                         "IDCHAN:[nom/id des canaux à se connecter, séparés par une virgule ou ALL]\n" +
                         "NBCHAN:[nombre de chan (-1;1024 / ALL)]\n" +
                         "CRON:[voir https://crontab.guru/ et https://cronjob.xyz/]\n" +
@@ -1386,78 +1474,11 @@ client.on('message', async msg => {
 
     } //fin ID LOG
 
-})
+});
 
 
 
-function brouiller(text, niveau_espace, niveau_caractere) {
 
-    let new_text = "";
-
-    for (i = 0; i < text.length; i++) {
-
-        if (text.charAt(i) === " " & ((new_text.length + (text.length - i)) < 1900)) { //si ESPACE   (bug car message discord limité à 2048 caract)
-            //console.log((new_text.length + (text.length - i)));
-            if (randomTF(niveau_espace) & niveau_espace != 0) { //si 3 => output 0 1 2
-
-                switch (random(7)) {
-                    case 0:
-                        new_text += " krsssh..";
-                        break;
-                    case 1:
-                        new_text += " ...krssssssh";
-                        break;
-                    case 2:
-                        new_text += " clckrssh..";
-                        break;
-                    case 3:
-                        new_text += "......";
-                        break;
-                    case 4:
-                        new_text += "...";
-                        break;
-                    case 5:
-                        new_text += ".........";
-                        break;
-                    case 6:
-                        new_text += "...kshhhhk";
-                        break;
-                }
-            }
-            new_text += " ";
-        } else {
-            if (randomTF(niveau_caractere) & niveau_caractere != 0) {
-                switch (random(7)) { //pk pas ascii ?
-                    case 0:
-                        new_text += "%";
-                        break;
-                    case 1:
-                        new_text += "\"";
-                        break;
-                    case 2:
-                        new_text += "^";
-                        break;
-                    case 3:
-                        new_text += "#";
-                        break;
-                    case 4:
-                        new_text += "$";
-                        break;
-                    case 5:
-                        new_text += "@";
-                        break;
-                    case 6:
-                        new_text += "§";
-                        break;
-                }
-            } else {
-                new_text += text.charAt(i);
-            }
-        }
-    }
-
-    return new_text;
-}
 
 
 
@@ -1516,7 +1537,7 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
 
     if (mot_interdits.length != 0) {
         msg.author.send(string_message.sending_msg.word_banned + mot_interdits.toString());
-        dif_log_r(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```", Channel_log, member.user.avatarURL(), "#e82020");
+        dif_log_r(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```\n``ID_utilisateur: " + utilisateur.ID + "`", Channel_log, member.user.avatarURL(), "#e82020");
         return;
     }
 
@@ -1606,7 +1627,7 @@ function CallBack_Message(sent, msg, utilisateur, member, log_titre, log) { // '
 
             dif_log_r(log_titre, log + "[Lien du message](\n" + sent.url + ")\n`ID_utilisateur: " + utilisateur.ID + "\nNombre de message: " + nb_msg + "`", Channel_log, member.user.avatarURL(), "#000000", false); //log
 
-            if (nb_msg >= 100 & nb_msg % 50 == 0) { //si multiple de 50
+            if (nb_msg % 150 == 0) { //si multiple de 150
                 msg.author.send(string_message.donations_msg.replace("%NB_MSG%", nb_msg.toString()));
                 admin.send("msg don envoyé à " + log_titre + " apres " + nb_msg);
             }
@@ -1736,4 +1757,4 @@ function download(url, path) {
 function dif_log_r(titre, texte, Channel_log, avatarURL, couleur, admin) {
     if (!config.MP_admin & !admin) dif_log(titre, texte, Channel_log, avatarURL, couleur);
     else dif_log(titre, texte, Channel_log, avatarURL, couleur, admin);
-}
+};
