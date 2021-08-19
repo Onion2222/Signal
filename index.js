@@ -429,7 +429,7 @@ client.on('message', async msg => {
         }
         //let Channel_radio = client.channels.get(config.ID_radio);
         Channel_radio.messages.fetch(utilisateur.DERMSG).then(message_sup => {
-            console.log(message_sup);
+            //console.log(message_sup);
             dif_log_r("Supression", "Suppression demandée du dernier message de " + get_usernames(member, true, true, true) + "\nMessage:\n`" + message_sup.embeds[0].description + "`", Channel_log, member.user.avatarURL(), "#ff0061");
             message_sup.delete();
 
