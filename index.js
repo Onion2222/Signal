@@ -1220,7 +1220,7 @@ client.on('message', async msg => {
                         "VOLUME:[entre 0 et 1 (par ex: 0.75)]\n" +
                         "```")
                     .addField("`list`", "Donne la liste des events audio et leur état")
-                    .addField("`info`", "nom de l'event audio - Donne beaucoup plus d'infos sur l'event audio")
+                    .addField("`info` + nom de l'event audio", "Donne beaucoup plus d'infos sur l'event audio")
                     .addField("`start` + nom de l'event audio", "Demarre l'event audio")
                     .addField("`stop` + nom de l'event audio", "Arrete l'event audio")
                     .addField("`del` + nom de l'event audio", "Supprime l'event audio")
