@@ -975,13 +975,13 @@ client.on('message', async msg => {
 
         if (command == "forbiddenword") {
 
-            if (args[0] == "add") { //$addmotinterdit couille
+            if (args[0] == "del") { //$addmotinterdit couille
                 configuration.mots_interdits.splice(configuration.mots_interdits.indexOf(args[1]), 1);
                 console.log("Supression du mot interdit");
                 msg.react("✅");
             }
 
-            if (args[0] == "del") { //$addmotinterdit couille
+            if (args[0] == "add") { //$addmotinterdit couille
                 configuration.mots_interdits.push(args[1]);
                 console.log("Nouveau mot interdit: " + configuration.mots_interdits[configuration.mots_interdits.length - 1]);
                 msg.react("✅");
