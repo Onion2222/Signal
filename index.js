@@ -823,7 +823,7 @@ client.on('message', async msg => {
             try {
                 let user = await client.users.fetch(args[0]);
                 user.send("Votre demande de changement de couleur a été refusée :confused:\nVoici la raison:\n> " + msg.content.match(/\[(.*?)\]/)[1].trim());
-
+				msg.react("✅");
             } catch (error) {
                 msg.channel.send("Il semble y avoir une erreur dans la commande, contactez onion !");
                 console.log(error);
@@ -975,19 +975,19 @@ client.on('message', async msg => {
 
         if (command == "forbiddenword") {
 
-            if (args[0] == "del") { //$addmotinterdit couille
+            if (args[0] == "del") { //$forbiddenword add couille
                 configuration.mots_interdits.splice(configuration.mots_interdits.indexOf(args[1]), 1);
                 console.log("Supression du mot interdit");
                 msg.react("✅");
             }
 
-            if (args[0] == "add") { //$addmotinterdit couille
+            if (args[0] == "add") { //$forbiddenword del couille
                 configuration.mots_interdits.push(args[1]);
                 console.log("Nouveau mot interdit: " + configuration.mots_interdits[configuration.mots_interdits.length - 1]);
                 msg.react("✅");
             }
 
-            if (args[0] == "list") { //$addmotinterdit couille
+            if (args[0] == "list") { //$forbiddenword list
                 msg.channel.send("Mots interdits: \n" + configuration.mots_interdits.toString());
                 return;
             }
