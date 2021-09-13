@@ -25,7 +25,23 @@
       "effetBrouillageCouleur": 1,
       "effetBrouillageFreq": -3,
       "message": "Yeah, ça marche bro, t'as bien SABOTE",
-      "utilisation": 200
+      "utilisation": 193
+    },
+    {
+      "code": "yoyo",
+      "effetBrouillage": -1,
+      "effetBrouillageEspace": -7,
+      "effetBrouillageCouleur": 0,
+      "message": "c'est un message pour le code yoyo",
+      "utilisation": -1
+    },
+    {
+      "code": "AZERTY",
+      "effetBrouillage": -100,
+      "effetBrouillageEspace": -50,
+      "effetBrouillageCouleur": 0,
+      "message": "salut t moche",
+      "utilisation": 0
     }
   ]
 }

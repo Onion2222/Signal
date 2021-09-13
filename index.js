@@ -15,7 +15,7 @@ console.log("╚════██║██║██║   ██║██║╚�
 console.log("███████║██║╚██████╔╝██║ ╚████║██║  ██║███████╗");
 console.log("╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝");
 console.log("==============================================");
-console.log("VERSION 4.0                     Par onion²\n\n");
+console.log("VERSION 5.0                     Par onion²\n\n");
 //lib
 const Discord = require('discord.js');
 const mysql = require('mysql');
@@ -434,15 +434,13 @@ client.on('message', async msg => {
             
 
             let event_asked = event.events.find(obj_event => obj_event.code === code);
+            let index_event_asked = event.events.findIndex(obj_event => obj_event.code === code);
             //console.log(event_asked);
-            console.log(event_asked);
-            console.log(event_asked.utilisation);
-            console.log((event_asked.utilisation > 0 | event_asked.utilisation==-1));
-            if(event_asked!=undefined & (event_asked.utilisation > 0 | event_asked.utilisation==-1)){  //si event exist et utilisation restante >0 ou infinie
+            if(event.events[index_event_asked]!=undefined & (event.events[index_event_asked].utilisation > 0 | event.events[index_event_asked].utilisation==-1)){  //si event exist et utilisation restante >0 ou infinie
 
-                configuration.brouillage_caractere = configuration.brouillage_caractere + event_asked.effetBrouillage;
-                configuration.brouillage_espace=configuration.brouillage_espace + event_asked.effetBrouillageEspace;
-                configuration.brouillage_couleur=configuration.brouillage_couleur + event_asked.effetBrouillageCouleur;
+                configuration.brouillage_caractere = configuration.brouillage_caractere + event.events[index_event_asked].effetBrouillage;
+                configuration.brouillage_espace=configuration.brouillage_espace + event.events[index_event_asked].effetBrouillageEspace;
+                configuration.brouillage_couleur=configuration.brouillage_couleur + event.events[index_event_asked].effetBrouillageCouleur;
 
                 if (configuration.brouillage_caractere < 0) configuration.brouillage_caractere=0;
                 if (configuration.brouillage_espace < 0)    configuration.brouillage_espace=0;
@@ -453,12 +451,19 @@ client.on('message', async msg => {
                 if (configuration.brouillage_couleur > 100)   configuration.brouillage_couleur=100;
 
                 msg.react("✅");
-                msg.channel.send(event_asked.message);
-                event_asked.utilisation=event_asked.utilisation-1;
-
-                dif_log("CODE ENTRE !",`Code entré par **${get_usernames(member,true, true,true)}**\nCode: **${code}**\n__Réussite !__\nBCa:${configuration.brouillage_caractere}|BE:${configuration.brouillage_espace}|BCo:${configuration.brouillage_couleur}`,Channel_log,member.user.avatarURL,`#65F53A`);
+                msg.channel.send(event.events[index_event_asked].message);
+                
+                if (event.events[index_event_asked].utilisation!=-1) { //maj nb utilisation restante
+                    
+                    event.events[index_event_asked].utilisation=event.events[index_event_asked].utilisation -1;
+                    refresh_json(undefined, event);
+                }
+                
+                
+                dif_log("CODE ENTRE !",`Code entré par **${get_usernames(member,true, true,true)}**\nCode: **${code}**\n__Réussite !__\nBrouillage:\n->Caractere:${configuration.brouillage_caractere}\n->Espace:${configuration.brouillage_espace}\n->Couleur:${configuration.brouillage_couleur}\nNombre d'utilisation restante:${event.events[index_event_asked].utilisation}`,Channel_log,member.user.avatarURL,`#65F53A`);
+                
             
-                refresh_json(false,false,true);
+            
             }else{
                 dif_log("CODE ENTRE !",`Code entré par **${get_usernames(member,true, true,true)}**\nCode: **${code}**\n__Echec__`,Channel_log,member.user.avatarURL,`#65F53A`);
                 msg.react("🚫");
@@ -1320,7 +1325,7 @@ client.on('message', async msg => {
 
 
                 //brouillage car
-                let effetBrouillage = parseInt(lines_param[2].match(/\[([-+].*?)\]/)[1]);
+                let effetBrouillage = parseInt(lines_param[2].match(/\[([+\-]?[0-9.]*)\]/)[1]);
 
                 if (effetBrouillage > 100 | effetBrouillage < -100) {
                     msg.channel.send("Erreur brouillage caractere incorrecte !");
@@ -1332,7 +1337,7 @@ client.on('message', async msg => {
                 //FIN brouillage car
 
                 //brouillage espace
-                let effetBrouillageEspace = parseInt(lines_param[3].match(/\[([-+].*?)\]/)[1]);
+                let effetBrouillageEspace = parseInt(lines_param[3].match(/\[([+\-]?[0-9.]*)\]/)[1]);
 
                 if (effetBrouillageEspace > 100 | effetBrouillageEspace < -100) {
                     msg.channel.send("Erreur brouillage espace incorrecte !");
@@ -1344,7 +1349,7 @@ client.on('message', async msg => {
                 //FIN brouillage espace
 
                 //brouillage couleur
-                let effetBrouillageCouleur = parseInt(lines_param[4].match(/\[([-+].*?)\]/)[1]);
+                let effetBrouillageCouleur = parseInt(lines_param[4].match(/\[([+\-]?[0-9.]*)\]/)[1]);
 
                 if (effetBrouillageCouleur> 255 | effetBrouillageCouleur < -255) {
                     msg.channel.send("Erreur brouillage couleur incorrecte !");
@@ -1364,8 +1369,17 @@ client.on('message', async msg => {
 
 
 
-                //nb utilisation (faire aussi $code)
+                //nb utilisation 
+                let utilisation = parseInt(lines_param[6].match(/\[([+\-]?[0-9]*)\]/)[1]); //pas meme regex
 
+                if (utilisation < -1) {
+                    msg.channel.send("Erreur nombre d'utilisation couleur incorrecte !");
+                    return;
+                }
+
+                log += "utilisation:**" + utilisation + "**";
+                new_event.utilisation = utilisation;
+                //fin b utilisation
 
                 //et on ajoute
                 msg.channel.send(log);
