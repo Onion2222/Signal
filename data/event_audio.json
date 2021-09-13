@@ -2,7 +2,7 @@
   "Audio_events": [
     {
       "nom": "test1",
-      "actif": true,
+      "actif": false,
       "volume": 0.1,
       "IDChans": [
         "822181704386871326"
@@ -13,7 +13,7 @@
     },
     {
       "nom": "1",
-      "actif": true,
+      "actif": false,
       "IDChans": [
         "822181704386871326",
         "822182676261634118",

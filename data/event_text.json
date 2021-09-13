@@ -1,0 +1,31 @@
+{
+  "events": [
+    {
+      "code": "codeTESTgood",
+      "effetBrouillage": -5,
+      "effetBrouillageEspace": -6,
+      "effetBrouillageCouleur": -1,
+      "effetBrouillageFreq": 3,
+      "message": "Yeah, ça marche bro, t'as bien REPARE",
+      "utilisation": 666
+    },
+    {
+      "code": "codeTESTbad",
+      "effetBrouillage": 5,
+      "effetBrouillageEspace": 6,
+      "effetBrouillageCouleur": 1,
+      "effetBrouillageFreq": -3,
+      "message": "Yeah, ça marche bro, t'as bien SABOTE",
+      "utilisation": 666
+    },
+    {
+      "code": "supr",
+      "effetBrouillage": 5,
+      "effetBrouillageEspace": 6,
+      "effetBrouillageCouleur": 1,
+      "effetBrouillageFreq": -3,
+      "message": "Yeah, ça marche bro, t'as bien SABOTE",
+      "utilisation": 200
+    }
+  ]
+}
