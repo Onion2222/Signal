@@ -83,22 +83,22 @@ client.on('ready', () => {
     //acq chan log & radio
     Channel_log = client.channels.cache.get(config.ID_log);
     if (!Channel_log) { //si cnnal log innaccessible
-        console.error("Channel " + config.ID_log + " non existant !\nIl n'y aura donc pas de log et d'acces aux commandes ADMIN");
+        console.error("Channel " + config.ID_log + " non existant !\nIl n'y aura donc pas de log et d'accès aux commandes ADMIN");
         console.log("Passage en mode debug admin");
         config.MP_admin = true; //forçage MP ADMIN
         dif_log_r("⚠️ MODE DEBUG ADMIN ⚠️", "Canal de log innaccessible !", undefined, client.user.avatarURL(), "#0000FF", admin);
     }
 
-    dif_log_r("⚠️ DEMARRAGE SIGNAL ⚠️", "Le bot vient de redemarrer.\nSi ce n'était pas prévu, contactez l'administrateur du bot !", Channel_log, client.user.avatarURL(), "#FF0000", admin);
+    dif_log_r("⚠️ DÉMARRAGE SIGNAL ⚠️", "Le bot vient de redemarrer.\nSi ce n'était pas prévu, contactez l'administrateur du bot !", Channel_log, client.user.avatarURL(), "#FF0000", admin);
 
     //application de la configuration
-    dif_log_r("⚠️ ETAT", "Reconfiguration de signal...", Channel_log, client.user.avatarURL(), "#0000FF", admin);
+    dif_log_r("⚠️ ÉTAT", "Reconfiguration de signal...", Channel_log, client.user.avatarURL(), "#0000FF", admin);
     try {
         configuration = JSON.parse(fs.readFileSync('./data/conf_signal.json', 'utf8'));
-        dif_log_r("⚠️ ETAT", "Configuration précedente trouvée !", Channel_log, client.user.avatarURL(), "#00FF00", admin);
+        dif_log_r("⚠️ ÉTAT", "Configuration précédente trouvée !", Channel_log, client.user.avatarURL(), "#00FF00", admin);
 
     } catch (e) {
-        dif_log_r("⚠️ ETAT", "__PARAMETRES INACCESSIBLE__ (voir terminal)\n Contactez Onion ! @everyone\nLe bot se termine sur une erreur...", Channel_log, client.user.avatarURL(), "#FF0000", admin);
+        dif_log_r("⚠️ ÉTAT", "__PARAMETRES INACCESSIBLE__ (voir terminal)\n Contactez Onion ! @everyone\nLe bot se termine sur une erreur...", Channel_log, client.user.avatarURL(), "#FF0000", admin);
         console.error(e);
         process.exit(0);
     }
@@ -111,16 +111,16 @@ client.on('ready', () => {
     //connexion SQL
     db.getConnection(function(err) {
         if (err) {
-            dif_log_r("⚠️ ETAT", "⚠️⚠️ Connection au server MySQL " + config.Serveur_SQL.host + " impossible !!⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
+            dif_log_r("⚠️ ÉTAT", "⚠️⚠️ Connection au server MySQL " + config.Serveur_SQL.host + " impossible !!⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
             console.log(err);
-        } else dif_log_r("⚠️ ETAT", "Connection au server MySQL " + config.Serveur_SQL.host + " réussie", Channel_log, client.user.avatarURL(), "#00FF00", admin);
+        } else dif_log_r("⚠️ ÉTAT", "Connection au server MySQL " + config.Serveur_SQL.host + " réussie", Channel_log, client.user.avatarURL(), "#00FF00", admin);
     });
 
     //recuperation chan radio
     Channel_radio = client.channels.cache.get(config.ID_radio);
     if (!Channel_radio) { //si pas de chan radio
         console.error("Channel " + config.ID_radio + " non existant !\nIl n'y a pas de channel radio, signal va donc se terminer...");
-        dif_log_r("⚠️ ETAT", "⚠️⚠️ Channel radio inaccessible, signal va donc se terminer ⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
+        dif_log_r("⚠️ ÉTAT", "⚠️⚠️ Channel radio inaccessible, signal va donc se terminer ⚠️⚠️", Channel_log, client.user.avatarURL(), "#FF0000", admin);
         process.exit(0);
     }
 
@@ -187,7 +187,7 @@ client.on('message', async msg => {
 
         //alerte intrusion
         if (member.roles.size <= 1 & msg.author.id !== config.ID_admin) { //permission @everyone ou nulle ET pas channel candidature et pas admin => alerte modo
-            let log = "\nIntrusion du systeme signal par une personne non autorisée\n";
+            let log = "\nIntrusion du système signal par une personne non autorisée\n";
             log += "Auteur:" + msg.author.username + "\nChannel:" + msg.channel.name + "\nContenu:" + msg.cleanContent;
             dif_log_r("⚠️ Intrusion !", log, Channel_log, member.user.avatarURL(), "#e000ff");
             return;
@@ -344,7 +344,7 @@ client.on('message', async msg => {
             msg.react("✅");
             member.edit({ channel: freq_togo.ID });
             //log
-            dif_log_r("🔊 Acces Vocal", get_usernames(member, true, true, false) + " vient d'acceder au channel " + freq_togo.nom, Channel_log, member.user.avatarURL(), "00ecff");
+            dif_log_r("🔊 Accès Vocal", get_usernames(member, true, true, false) + " vient d'accéder au channel " + freq_togo.nom, Channel_log, member.user.avatarURL(), "00ecff");
             return;
         }
 
@@ -507,7 +507,7 @@ client.on('message', async msg => {
                 //console.log(new_text);
                 //new_text = decrypter(new_text, CLEF_PROG);
 
-                dif_log_r("Décryptage", "Tentative de decryptage de " + get_usernames(member, true, true, false) + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text, Channel_log, member.user.avatarURL(), "#d1ff00");
+                dif_log_r("Décryptage", "Tentative de décryptage de " + get_usernames(member, true, true, false) + "\nMessage crypté: " + text + "\nClef: " + key + "\nResultat: " + new_text, Channel_log, member.user.avatarURL(), "#d1ff00");
 
                 msg.author.send("Message décodé 🔐 :\n" + "```" + new_text + "```");
                 if (msg.channel.type !== "text") {
@@ -638,7 +638,7 @@ client.on('message', async msg => {
         }
 
         if (command == "credit") {
-            dif_log_r("Crédit", "Demande credit par l'utilisateur " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#3b2e2e");
+            dif_log_r("Crédit", "Demande crédit par l'utilisateur " + get_usernames(member, true, true, true), Channel_log, member.user.avatarURL(), "#3b2e2e");
             let embed_credit = new Discord.MessageEmbed()
                 .setColor(16312092)
                 .setTimestamp()
@@ -663,25 +663,25 @@ client.on('message', async msg => {
                 .setTitle("Aide admin 1/2")
                 .setDescription("Commande uniquement utilisable sur ce channel\n*Il vaut mieux demander à Onion avant de faire n'importe quoi*")
                 .addField("`$etat`", "Affiche l'état du réseau signal")
-                .addField("`$actif`", "Active ou desactive signal")
+                .addField("`$actif`", "Active ou désactive signal")
                 .addField("`$anonyme`", "Anonymise ou n'anonymise pas les messages")
                 .addField("`$coloration`", "Impose les Jaune ou laisse les couleurs personnalisées")
-                .addField("`$fichier`", "Active/desactive l'envoie de fichier (hors audio)")
-                .addField("`$audio`", "Active/desactive l'envoie de fichier audio")
+                .addField("`$fichier`", "Active/désactive l'envoie de fichier (hors audio)")
+                .addField("`$audio`", "Active/désactive l'envoie de fichier audio")
                 .addField("`$cleanup`", "Supprime ou re-ordonne la supression future des messages qui n'ont pas été supprimé dans les temps")
                 .addField("`$admin`", "Permet de diffuser un message d'administrateur")
-                .addField("`$setbrouillage` + X (+ >BLABLA (+ image))", "Modifie le brouillage\nX: X% de carracteres brouillés (defaut: 0, pas de brouillage)\n BLABLA: raison du brouillage (optionnel)\nimage: petite image (optionnel)\nDifferents niveaux: [;25[,[25;15[,[15;7[,[7;1]")
+                .addField("`$setbrouillage` + X (+ >BLABLA (+ image))", "Modifie le brouillage\nX: X% de caractères brouillés (defaut: 0, pas de brouillage)\n BLABLA: raison du brouillage (optionnel)\nimage: petite image (optionnel)\nDifférents niveaux: [;25[,[25;15[,[15;7[,[7;1]")
                 .addField("`$setbrouillageespace` + X ", "Modifie la chance d'avoir des \"krssssh\"\nX: X% d'espaces transformés")
-                .addField("`$setbrouillagecouleur` + X ", "Pour le brouillage des couleurs... Je sais pas expliquer, mais 80 donne +/-40 /255 de brouillage RGB (je sais c'est pas claire)")
+                .addField("`$setbrouillagecouleur` + X ", "Pour le brouillage des couleurs... Je sais pas expliquer, mais 80 donne +/-40 /255 de brouillage RGB (je sais c'est pas clair)")
                 .addField("`$ban` + X / `$deban` + X / `$listeban`", "Ban/Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
-                .addField("`$delaidel` + X", "Modifie la durée des message\nX: durée en ms")
-                .addField("`$cryptage`", "Active ou desactive la commande $crypt")
-                .addField("`$forbiddenword` + `add regex explication`/`del position`/`list`", "Ajoute/Suprrime un regex interdit à la liste / Affiche la liste (position commence à 0)")
-                .addField("`$listefreqmdp`", "Affiche la liste des fréquence avec leur ID et leur mdp")
-                .addField("`$addfreqprivée` + nom + mdp + ID", "Ajoute une frequence privé")
-                .addField("`$addfreq` + nom + ID", "Ajoute une frequence publique")
-                .addField("`$delfreq` + nom (ou ID)", "Supprime la frequence")
-                .addField("`$changemdpfreq` + nom (ou ID) + mdp", "Change le mdp de la frequence privée")
+                .addField("`$delaidel` + X", "Modifie la durée des messages\nX: durée en ms")
+                .addField("`$cryptage`", "Active ou désactive la commande $crypt")
+                .addField("`$forbiddenword` + `add regex explication`/`del position`/`list`", "Ajoute/Supprime un regex interdit à la liste / Affiche la liste (position commence à 0)")
+                .addField("`$listefreqmdp`", "Affiche la liste des fréquences avec leur ID et leur mdp")
+                .addField("`$addfreqprivée` + nom + mdp + ID", "Ajoute une fréquence privé")
+                .addField("`$addfreq` + nom + ID", "Ajoute une fréquence publique")
+                .addField("`$delfreq` + nom (ou ID)", "Supprime la fréquence")
+                .addField("`$changemdpfreq` + nom (ou ID) + mdp", "Change le mdp de la fréquence privée")
                 .addField("`$difhelp` + ID", "Envoie l'aide sur le channel correspondant à l'ID")
                 .addField("`$difhelpfreq` + ID", "Envoie l'aide de changement de freq sur le channel correspondant à l'ID")
                 .addField("`$evalSQL`", "Evalue une commande SQL :warning: NE PAS UTILISER SI VOUS N'ETES PAS SUR !!!")
@@ -692,10 +692,10 @@ client.on('message', async msg => {
                 .setTimestamp()
                 .setTitle("Aide admin 2/2")
                 .setDescription("Commande uniquement utilisable sur ce channel\n*Il vaut mieux demander à Onion avant de faire n'importe quoi*")
-                .addField("`$covocpourtext`", "Active ou desactive la connexion vocale obligaoite pour envoyer du text")
+                .addField("`$covocpourtext`", "Active ou désactive la connexion vocale obligatoire pour envoyer un message")
                 .addField("`$file`", "Aide pour la gestion des fichiers event_audio du serveur")
-                .addField("`$audioevent`", "**Aide pour les evenements audio**")
-                .addField("`$codeevent`", "**Aide pour les evenements de code**")
+                .addField("`$audioevent`", "**Aide pour les événements audio**")
+                .addField("`$codeevent`", "**Aide pour les événements de code**")
                 .addField("Commandes EVENT", "`$maj` | `$stopmaj` | `$mise_en_route`")
                 .setFooter("Par Onion² pour " + nom_serveur);
             msg.channel.send(embed_signal1).then( 
@@ -709,10 +709,10 @@ client.on('message', async msg => {
                 .setColor(1)
                 .setTimestamp()
                 .setTitle("Etat du programme")
-                .setDescription("Voici les differents parametres de signal");
+                .setDescription("Voici les différents paramètres de signal");
 
-            if (configuration.brouillage_caractere == 0) embed_signal.addField("Brouillage (caractere)", "__désactivée__");
-            else embed_signal.addField("Brouillage (caractere)", configuration.brouillage_caractere.toString() + "%");
+            if (configuration.brouillage_caractere == 0) embed_signal.addField("Brouillage (caractère)", "__désactivée__");
+            else embed_signal.addField("Brouillage (caractère)", configuration.brouillage_caractere.toString() + "%");
 
             if (configuration.brouillage_espace == 0) embed_signal.addField("Brouillage (espace)", "__désactivée__");
             else embed_signal.addField("Brouillage (espace)", configuration.brouillage_espace.toString() + "%");
@@ -723,7 +723,7 @@ client.on('message', async msg => {
             if (configuration.taille_max_msg == 0) embed_signal.addField("Taille maximum des messages", "(limitation discord)");
             else embed_signal.addField("Taille maximum des messages", configuration.taille_max_msg.toString());
 
-            embed_signal.addField("Delai avant supression d'un message", configuration.duree_messsage.toString() + "ms");
+            embed_signal.addField("Délai avant supression d'un message", configuration.duree_messsage.toString() + "ms");
 
             if (configuration.coloration) embed_signal.addField("Coloration personnalisable", "__activée__");
             else embed_signal.addField("Coloration personnalisable", "__désactivée__");
@@ -743,8 +743,8 @@ client.on('message', async msg => {
             if (configuration.audio) embed_signal.addField("Fichier audio", "__activé__");
             else embed_signal.addField("Fichier audio", "__désactivé__");
 
-            if (configuration.audio) embed_signal.addField("Connextion chan audio obligatoire", "__activé__");
-            else embed_signal.addField("Connextion chan audio obligatoire", "__désactivé__");
+            if (configuration.audio) embed_signal.addField("Connexion channel audio obligatoire", "__activé__");
+            else embed_signal.addField("Connexion channel audio obligatoire", "__désactivé__");
 
             //json
             //embed_signal.addField("Nombre d'utilisateur avec profile couleur", liste_utilisateur.Utilisateurs.length);
@@ -775,8 +775,8 @@ client.on('message', async msg => {
         if (command == "delaidel") {
             configuration.duree_messsage = args[0];
             refresh_json(configuration, undefined);
-            msg.channel.send("Nouveau delai avant supression d'un message: " + configuration.duree_messsage + "ms");
-            console.log("Nouveau delai avant supression message: " + configuration.duree_messsage + "ms");
+            msg.channel.send("Nouveau délai avant supression d'un message: " + configuration.duree_messsage + "ms");
+            console.log("Nouveau délai avant supression message: " + configuration.duree_messsage + "ms");
             msg.react("✅");
             return;
         }
@@ -1117,7 +1117,7 @@ client.on('message', async msg => {
                     msg.react("✅");
                     return;
                 } else {
-                    msg.channel.send("Pas de frequence à ce nom...");
+                    msg.channel.send("Pas de fréquence à ce nom...");
                     return;
                 }
             } catch (error) {
@@ -1136,16 +1136,16 @@ client.on('message', async msg => {
                     if (index != -1) {
                         freq_deleted = configuration.frequence.freq[index];
                         configuration.frequence.freq.splice(index, 1);
-                        msg.channel.send("Supression de la frequence:\n`$addfreq " + freq_deleted.nom + " " + freq_deleted.ID + "`");
+                        msg.channel.send("Supression de la fréquence:\n`$addfreq " + freq_deleted.nom + " " + freq_deleted.ID + "`");
                     } else {
-                        msg.channel.send("Pas de frequence à ce nom...");
+                        msg.channel.send("Pas de fréquence à ce nom...");
                         return;
                     }
 
                 } else {
                     freq_deleted = configuration.frequence.TACSAT[index];
                     configuration.frequence.TACSAT.splice(index, 1);
-                    msg.channel.send("Supression de la frequence:\n`$addfreqprivée " + freq_deleted.nom + " " + freq_deleted.ID + " " + freq_deleted.mdp + "`");
+                    msg.channel.send("Supression de la fréquence:\n`$addfreqprivée " + freq_deleted.nom + " " + freq_deleted.ID + " " + freq_deleted.mdp + "`");
                 }
 
                 refresh_json(configuration, undefined);
@@ -1231,7 +1231,7 @@ client.on('message', async msg => {
             if (configuration.brouillage_caractere != 0) msg.channel.send("Désormais, " + configuration.brouillage_caractere + "% des caractères seront brouillés");
             else msg.channel.send("Le brouillage est désactivé");
             if (configuration.brouillage_caractere > 20) {
-                msg.channel.send("Ce niveau de brouillage est très fort ! Les messages risquent d'être illisible (Plus d'1 caractere sur 5 sera brouillé)");
+                msg.channel.send("Ce niveau de brouillage est très fort ! Les messages risquent d'être illisible (Plus d'1 caractère sur 5 sera brouillé)");
             }
             
             return;
@@ -1465,7 +1465,7 @@ client.on('message', async msg => {
                     .addField("`list`", "Donne la liste des events audio et leur état")
                     .addField("`info` + nom de l'event audio", "Donne beaucoup plus d'infos sur l'event audio")
                     .addField("`start` + nom de l'event audio", "Demarre l'event audio")
-                    .addField("`stop` + nom de l'event audio", "Arrete l'event audio")
+                    .addField("`stop` + nom de l'event audio", "Arrête l'event audio")
                     .addField("`del` + nom de l'event audio", "Supprime l'event audio")
                     .addField("`plan` + nom de l'event audio", "Donne les 30 prochaines diffusions");
                 msg.channel.send(embed_Aide_eventAudio);
@@ -1878,7 +1878,7 @@ function CallBack_Message(sent, msg, utilisateur, member, log_titre, log) { // '
 
             if (nb_msg % 150 == 0) { //si multiple de 150
                 msg.author.send(string_message.donations_msg.replace("%NB_MSG%", nb_msg.toString()));
-                admin.send("msg don envoyé à " + log_titre + " apres " + nb_msg);
+                admin.send("message don envoyé à " + log_titre + " après " + nb_msg);
             }
         });
     });
