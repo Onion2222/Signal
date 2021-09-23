@@ -2,6 +2,7 @@
     "accueil": "Bonjour, il semble qu'il s'agisse de votre première utilisation de __signal__, n'oubliez pas de consulter l'aide (`$help`)",
     "problem": "Le Bot rencontre actuellement quelques difficultés, merci de réessayer ultérieurement...",
     "bloque": ":warning: Il semblerait que vous soyez bloqué par signal... Contactez un administrateur pour plus d'informations.",
+    "notconnected":"Vous devez être connecté à un canal audio pour envoyer des messages...",
     "troplong": "Ton message est trop long (il fait plus de 1500 caracteres)\nDiscord limite la taille de mes message à 2000 caracteres, je vais donc l'envoyer en 2 parties pour éviter les problèmes.",
     "troplong_limiteadmin": "Ton message est trop long (il fait plus de %LIMITE% caractères), il ne sera donc pas envoyé.\nLe serveur qui héberge signal limite le nombre de caractères",
     "freq": {

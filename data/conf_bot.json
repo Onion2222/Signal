@@ -1,16 +1,16 @@
 {
-    "TOKEN": "--",
-    "ID_admin": "--",
-    "ID_serveur": "--",
-    "ID_radio": "--",
-    "ID_log": "--",
-    "MP_admin": false,
+    "TOKEN": "Nzc3OTU5MjY2MTExMDYyMDY4.X7LBBg.cd0UMloS8MyZJhmwaSYO_XHaYYE",
+    "ID_admin": "328584955934277633",
+    "ID_serveur": "777958966151086122",
+    "ID_radio": "777958967477141576",
+    "ID_log": "777959086448312350",
+    "MP_admin": true,
     "debug": false,
-    "version": "3.5____discord.js_v12",
+    "version": "5____discord.js_v12",
     "Serveur_SQL": {
-        "host": "--",
-        "user": "--",
-        "password": "--",
-        "database": "--"
+        "host": "45.140.165.82",
+        "user": "u13436_tGlqPfGr2s",
+        "password": "mg@ijO@9GDR+@yVXDBTUFPT@",
+        "database": "s13436_utilisateur"
     }
 }

@@ -241,6 +241,17 @@ client.on('message', async msg => {
         //envoie message RP
         if (msg.content.indexOf(appel) !== 0) { //si ne commence pas par le caractere d'appel
 
+            //verifie si present chan vocal /!\
+            if (configuration.co_voc_oblig & !member.voice.channelID) { 
+                if (msg.channel.type === "dm") msg.react("❌");
+                msg.author.send(string_message.notconnected);
+                dif_log_r(get_usernames(member, true, false, false)+" | "+get_usernames(member, false, true, false), "Tentative d'envoie de message sans être connecté à un chan vocal\n`"+msg.cleanContent+"`", Channel_log, member.user.avatarURL(), "#e82020");
+        
+                return;
+            }
+
+
+
             if (msg.channel.id == config.ID_radio | msg.channel.type !== "text") { //si poste dans channel roleplay ou en pm sans caractere d'appel
                 if (configuration.taille_max_msg === 0) { //si sur serveru avec limitation caractere
                     if (msg.content.length > 1500) {
@@ -564,7 +575,7 @@ client.on('message', async msg => {
                 return;
             }
 
-            dif_log_r("DEBUG Couleur", "Demande changment de couleur" + get_usernames(member, true, true, true) + "\nFormulaire:\n" + msg.cleanContent, Channel_log, client.user.avatarURL(), "#4dff00");
+            //dif_log_r("DEBUG Couleur", "Demande changment de couleur" + get_usernames(member, true, true, true) + "\nFormulaire:\n" + msg.cleanContent, Channel_log, client.user.avatarURL(), "#4dff00");
             //si nombre de ligne ok
             if (ligne.length < 3) {
                 msg.react("❌");
@@ -665,7 +676,7 @@ client.on('message', async msg => {
                 .addField("`$ban` + X / `$deban` + X / `$listeban`", "Ban/Deban quelqu'un de signal\nX: mention ou ID de l'utilisateur à bannir")
                 .addField("`$delaidel` + X", "Modifie la durée des message\nX: durée en ms")
                 .addField("`$cryptage`", "Active ou desactive la commande $crypt")
-                .addField("`$forbiddenword` + `add`/`del`/`list`", "Ajoute/Suprrime un regex interdit à la liste / Affiche la liste")
+                .addField("`$forbiddenword` + `add regex explication`/`del position`/`list`", "Ajoute/Suprrime un regex interdit à la liste / Affiche la liste (position commence à 0)")
                 .addField("`$listefreqmdp`", "Affiche la liste des fréquence avec leur ID et leur mdp")
                 .addField("`$addfreqprivée` + nom + mdp + ID", "Ajoute une frequence privé")
                 .addField("`$addfreq` + nom + ID", "Ajoute une frequence publique")
@@ -681,6 +692,7 @@ client.on('message', async msg => {
                 .setTimestamp()
                 .setTitle("Aide admin 2/2")
                 .setDescription("Commande uniquement utilisable sur ce channel\n*Il vaut mieux demander à Onion avant de faire n'importe quoi*")
+                .addField("`$covocpourtext`", "Active ou desactive la connexion vocale obligaoite pour envoyer du text")
                 .addField("`$file`", "Aide pour la gestion des fichiers event_audio du serveur")
                 .addField("`$audioevent`", "**Aide pour les evenements audio**")
                 .addField("`$codeevent`", "**Aide pour les evenements de code**")
@@ -730,6 +742,9 @@ client.on('message', async msg => {
 
             if (configuration.audio) embed_signal.addField("Fichier audio", "__activé__");
             else embed_signal.addField("Fichier audio", "__désactivé__");
+
+            if (configuration.audio) embed_signal.addField("Connextion chan audio obligatoire", "__activé__");
+            else embed_signal.addField("Connextion chan audio obligatoire", "__désactivé__");
 
             //json
             //embed_signal.addField("Nombre d'utilisateur avec profile couleur", liste_utilisateur.Utilisateurs.length);
@@ -824,7 +839,6 @@ client.on('message', async msg => {
             refresh_json(configuration, undefined);
             if (configuration.actif) {
                 msg.channel.send("Signal est maintenant __actif__");
-
             } else {
                 msg.channel.send("Signal n'est maintenant __plus actif__");
             }
@@ -836,6 +850,14 @@ client.on('message', async msg => {
             refresh_json(configuration, undefined);
             if (configuration.changement_couleur) msg.channel.send("Changement de couleur libre __actif__");
             else msg.channel.send("Changement de couleur libre __plus actif__");
+            return;
+        }
+
+        if (command == "covocpourtext") {
+            configuration.co_voc_oblig = !configuration.co_voc_oblig;
+            refresh_json(configuration, undefined);
+            if (configuration.co_voc_oblig) msg.channel.send("Connection vocale obligatoire pour envoyer des messages: __actif__");
+            else msg.channel.send("Connection vocale obligatoire pour envoyer des messages: __non actif__");
             return;
         }
 
@@ -1029,16 +1051,16 @@ client.on('message', async msg => {
         if (command == "forbiddenword") {
 
             if (args[0] == "del") { //$forbiddenword add couille
-                configuration.mots_interdits.splice(configuration.mots_interdits.indexOf(args[1]), 1);
-                console.log("Supression du mot interdit");
+                let deleted = configuration.mots_interdits.splice(parseInt(args[1]), 1);
+                console.log(`Supression du mot interdit : ${deleted.toString()}`);
                 refresh_json(configuration, undefined);
                 msg.react("✅");
                 return;
             }
 
-            if (args[0] == "add") { //$forbiddenword del couille
-                configuration.mots_interdits.push(args[1]);
-                console.log("Nouveau mot interdit: " + configuration.mots_interdits[configuration.mots_interdits.length - 1]);
+            if (args[0] == "add") { //$forbiddenword add couille bite
+                configuration.mots_interdits.push([args[1], args[2]]);
+                console.log("Nouveau mot interdit: " + configuration.mots_interdits[configuration.mots_interdits.length - 1].toString());
                 refresh_json(configuration, undefined);
                 msg.react("✅");
                 return;
@@ -1757,14 +1779,21 @@ async function Send_Message(msg, content, utilisateur, member, cryptage, clef) {
 
     if (mot_interdits.length != 0) {
         msg.author.send(string_message.sending_msg.word_banned + mot_interdits.toString());
-        dif_log_r(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```\n``ID_utilisateur: " + utilisateur.ID + "`", Channel_log, member.user.avatarURL(), "#e82020");
+        dif_log_r(log_titre, log + "UTILISATION DE MOTS INTERDITS ! :warning:\n```" + mot_interdits.toString() + "```\n`ID_utilisateur: " + utilisateur.ID + "`", Channel_log, member.user.avatarURL(), "#e82020");
         return;
     }
 
 
     if (content.length !== 0) {
 
-        let new_text = brouiller(content, configuration.brouillage_espace, configuration.brouillage_caractere); //brouillage message
+        
+
+        let new_text = brouiller(   content,
+                                    configuration.brouillage_espace,
+                                    configuration.brouillage_caractere,
+                                    configuration.brouille_espace,
+                                    configuration.brouille_caractere,
+                                    configuration.brouille_caractere_autorise); //brouillage message
 
         let embed_signal = new Discord.MessageEmbed()
             .setTimestamp();
