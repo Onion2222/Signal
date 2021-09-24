@@ -3,7 +3,7 @@
     "problem": "Le Bot rencontre actuellement quelques difficultés, merci de réessayer ultérieurement...",
     "bloque": ":warning: Il semblerait que vous soyez bloqué par signal... Contactez un administrateur pour plus d'informations.",
     "notconnected":"Vous devez être connecté à un canal audio pour envoyer des messages...",
-    "troplong": "Ton message est trop long (il fait plus de 1500 caracteres)\nDiscord limite la taille de mes message à 2000 caracteres, je vais donc l'envoyer en 2 parties pour éviter les problèmes.",
+    "troplong": "Ton message est trop long (il fait plus de 1500 caractères)\nDiscord limite la taille de mes messages à 2000 caractères, je vais donc l'envoyer en 2 parties pour éviter les problèmes.:smiley:",
     "troplong_limiteadmin": "Ton message est trop long (il fait plus de %LIMITE% caractères), il ne sera donc pas envoyé.\nLe serveur qui héberge signal limite le nombre de caractères",
     "freq": {
         "notconnected": "Ooopsie ! Vous devez être sur un channel vocal pour être transféré ! :confused:",
@@ -23,7 +23,7 @@
         "noarg": "Pas d'argument, une couleur aléatoire vous a donc été attribuée",
         "wrongarg": "Erreur, argument incorrect... Se référer à `$help`",
         "result": "Couleur définie sur ",
-        "previous": "Couleur précedente ",
+        "previous": "Couleur précédente ",
         "blocked": "Le changement de couleur est interdit sans motivation valide.\nPour faire une demande de changement de couleur merci de copier/coller ce formulaire, le remplir en remplaçant ce qui est écrit entre crochets et __l'envoyer au bot__. Il sera ensuite soumis aux administrateurs pour validation.",
         "askchgt": {
             "wrongformat": "Merci de respecter le format imposé. :wink:",
@@ -60,7 +60,7 @@
             },
             "crypt": {
                 "name": "__Utiliser le cryptage__",
-                "value": "Pour crypter et décrypter un message avec un clef de chiffrement, tapez:\n```$crypt clef message\n$decrypt clef message_crypté```\nAvec **__clef__**: votre clef de chiffrement (mot de passe)\n:warning: Votre clef de cryptage ne doit pas contenir d'espace !\n:warning: Le code n'est pas incraquable, il s'agit d'un code vigenere adapté\nhttps://fr.wikipedia.org/wiki/Chiffre_de_Vigen%C3%A8re"
+                "value": "Pour crypter et décrypter un message avec une clef de chiffrement, tapez:\n```$crypt clef message\n$decrypt clef message_crypté```\nAvec **__clef__**: votre clef de chiffrement (mot de passe)\n:warning: Votre clef de cryptage ne doit pas contenir d'espace !\n:warning: Le code n'est pas incraquable, il s'agit d'un code vigenere adapté\nhttps://fr.wikipedia.org/wiki/Chiffre_de_Vigen%C3%A8re"
             },
             "chgtcouleur": {
                 "name": "__Modifier la couleur de son message__",
@@ -72,30 +72,29 @@
             },
             "donate": {
                 "name": "Donation",
-                "value": "Signal est entièrement gratuit, mais vous pouvez faire un don sur ce lien\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormément !"
+                "value": "Signal est entièrement gratuit, mais vous pouvez faire un don sur ce lien\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormément !:smiley:"
             },
             "askchgtcouleur": {
                 "name": "__Demander un changement de couleur__",
                 "value": "Votre couleur ne vous plaît pas ? Demandez un changement de couleur aux administrateurs en tapant:\n```$demandechangementcouleur```"
             }
-
         },
         "freq": {
             "list": {
                 "name": "__Liste des fréquences radios__",
-                "public": "**Liste des frequences publiques:**",
-                "private": "**Liste des frequences privées:**"
+                "public": "**Liste des fréquences publiques:**",
+                "private": "**Liste des fréquences privées:**"
             },
             "help": {
                 "title": "__Aide pour les fréquences radios__",
-                "description": "Avant d'integrer une fréquence, vous devez être connecté à un channel vocal",
+                "description": "Avant d'intégrer une fréquence, vous devez être connecté à un channel vocal",
                 "gopublic": {
-                    "name": "Acceder à une fréquence publique:",
-                    "value": "`$freq` suivi du nom de la frequence"
+                    "name": "Accéder à une fréquence publique:",
+                    "value": "`$freq` suivi du nom de la fréquence"
                 },
                 "goprivate": {
-                    "name": "Acceder à une fréquence privée:",
-                    "value": "`$freq` suivi du nom de la frequence puis du mot de passe"
+                    "name": "Accéder à une fréquence privée:",
+                    "value": "`$freq` suivi du nom de la fréquence puis du mot de passe"
                 },
                 "list": {
                     "name": "Obtenir la liste des fréquences disponibles:",
@@ -124,14 +123,14 @@
             }
         },
         "color": {
-            "description": "Bienvenue dans l'aide couleur du bot Signal\nPour modifier la couleur des messages, il faut taper ```$couleur``` suivi du code hexadecimal de la couleur de ton choix\nExemple:```$couleur #ff33da```coloriera votre message en **rose**",
+            "description": "Bienvenue dans l'aide couleur du bot Signal\nPour modifier la couleur des messages, il faut taper ```$couleur``` suivi du code hexadécimal de la couleur de ton choix\nExemple:```$couleur #ff33da```coloriera votre message en **rose**",
             "getcode": {
-                "name": "Obtenir le code hexa d'une couleur",
+                "name": "Obtenir le code hexadécimal d'une couleur",
                 "value": "https://htmlcolorcodes.com/fr/ , copiez le 1er nombre à droite (ex: #33f3ff)"
             },
             "knowcolor": {
                 "name": "Connaître sa couleur",
-                "value": "Pour connaitre sa couleur, tapez ```$macouleur```"
+                "value": "Pour connaître sa couleur, tapez ```$macouleur```"
             },
             "random": {
                 "name": "Couleur aléatoire",
@@ -139,5 +138,5 @@
             }
         }
     },
-    "donations_msg": "Wahou ! Tu as déjà écrit %NB_MSG% messages, tu as l'aire d'aimer le bot :partying_face:\nN'hésite pas à remercier son créateur et à contribuer à son développement en faisant un don ici:\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormement :wink:"
+    "donations_msg": "Wahou ! Tu as déjà écrit %NB_MSG% messages, tu as l'air d'aimer le bot :partying_face:\nN'hésite pas à remercier son créateur et à contribuer à son développement en faisant un don ici:\nhttps://paypal.me/pools/c/8mowOxex8i\nMerci énormement :wink:"
 }
